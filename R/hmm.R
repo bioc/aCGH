@@ -11,7 +11,7 @@ hmm.run.func <-
     function(dat, datainfo = clones.info, vr = .01, maxiter = 100,
              aic = TRUE, bic = TRUE, delta = 1)
 {
-    
+
     chrom.uniq <- unique(datainfo$Chrom)
     states <- matrix(NA, nrow=nrow(dat), ncol=(2+6*ncol(dat)))
     states[,1:2] <- cbind(datainfo$Chrom, datainfo$kb)
@@ -25,27 +25,36 @@ hmm.run.func <-
     ##over deltas
 
     nlists <- 0
-    if (aic)
+    if (aic && bic)
+    {
+        nlists <- 1 + length(delta)
+    }
+    else if (bic)
+    {
+        nlists <- length(delta)
+    }
+    else
+    {
         nlists <- 1
-    if (bic)
-        for (j in 1:length(delta))
-            nlists <- nlists+1
+    }
+
     if (nlists > 1)
         for (j in 2:nlists)
         {
             states.list[[j]] <- states.list[[1]]
             nstates.list[[j]] <- nstates.list[[1]]
         }
+
     for (i in 1:ncol(dat))
     {
-        
+
 ###        print(paste("sample is ", i))
         colstart <- 2+(i-1)*6+1
         colend <- 2+i*6
         for (j in 1:length(chrom.uniq))
         {
 ###            print(paste("chrom is ", j))
-            
+
             res <-
                 try(
                     states.hmm.func(sample = i, chrom = j,
@@ -58,22 +67,22 @@ hmm.run.func <-
                                     nlists = nlists
                                     )
                     )
-            
+
             for (m in 1:nlists)
             {
 
                 states.list[[m]][((1:nrow(states))[states[,1]==j]),colstart:colend] <-
                     as.matrix(res$out.list[[m]])
                 nstates.list[[m]][j,i] <- res$nstates.list[[m]]
-                
+
             }
-            
-            
+
+
         }
-        
+
     }
     list(states.hmm = states.list, nstates.hmm = nstates.list)
-    
+
 }
 #####################################################################
 #####################################################################
@@ -81,7 +90,7 @@ hmm.run.func <-
 ##auxilliary function
 
 mu1.func <-
-    function(p) 
+    function(p)
 {
     matrix(p, nrow=1)
 }
@@ -148,7 +157,7 @@ states.hmm.func <-
                  rep(.025,3),rep(.025,2), .9, rep(.025,2),
                  rep(.025,3), .9, .025,rep(.025,4), .9),ncol=5,
                b = TRUE)
-    
+
 
 ####################################
     ##df's for each model
@@ -208,7 +217,7 @@ states.hmm.func <-
     ##{
     ##        z3.heter$maxlik <- NA
     ##}
-    
+
     if (length(names(z4)) == 0)
     {
         z4$maxlik <- NA
@@ -259,42 +268,42 @@ states.hmm.func <-
               2*z5$maxlik+2*k5*factor)
         switch(which.min(lik),
            {
-               
+
                z <- z1
                name <- "z1"
                nstates <- 1
-               
+
            },
            {
-               
+
                z <- z2
                name <- "z2"
                nstates <- 2
-               
+
            },
            {
-               
+
                z <- z3
                name <- "z3"
                nstates <- 3
-               
+
            },
            {
-               
+
                z <- z4
                name <- "z4"
                nstates <- 4
-               
+
            },
            {
-               
+
                z <- z5
                name <- "z5"
                nstates <- 5
-               
+
            }
                )
-        
+
 ######################################
         ##out rpred and state
 
@@ -311,12 +320,12 @@ states.hmm.func <-
             disp <- rep(0, length(y))
             for (m in 1:length(maxstate.unique))
             {
-                
+
                 pred[maxstate==maxstate.unique[m]] <-
                     median(y[maxstate==maxstate.unique[m]])
                 disp[maxstate==maxstate.unique[m]] <-
                     mad(y[maxstate==maxstate.unique[m]])
-                
+
             }
 
             ##if (length(z$pshape) == 1)
@@ -327,7 +336,7 @@ states.hmm.func <-
             ##{
             ##        disp <- z$pshape[maxstate]
             ##}
-            
+
         }
         else #if generic
         {
@@ -339,9 +348,9 @@ states.hmm.func <-
             pred <- rep(median(y), length(y))
             ##disp <- rep(var(y), length(y))
             disp <- rep(mad(y), length(y))
-            
+
         }
-        
+
         out <-
             cbind(matrix(maxstate, ncol=1), matrix(rpred, ncol=1),
                   matrix(prob, ncol=1), matrix(pred, ncol=1),
@@ -352,8 +361,8 @@ states.hmm.func <-
         out.all <- as.data.frame(out.all)
         dimnames(out.all)[[2]] <-
             c("state", "rpred", "prob", "pred", "disp", "obs")
-        
-        
+
+
         if (nl==1)
         {
             out.all.list <- list(out.all)
@@ -364,17 +373,17 @@ states.hmm.func <-
             out.all.list[[nl]] <- out.all
             nstates.list[[nl]] <- nstates
         }
-        
+
         ##cloneinfo <- as.data.frame(cbind(rep(chrom, length(kb.ord)), kb.ord))
         ##dimnames(cloneinfo)[[2]] <- c("Chrom", "kb")
     }
     options(opts)
-    
-    list(out.list = out.all.list, nstates.list = nstates.list)
-    
-}
 
-as.matrix.dist <- 
+    list(out.list = out.all.list, nstates.list = nstates.list)
+
+
+
+as.matrix.dist <-
     function (x)
 {
     size <- attr(x, "Size")
@@ -452,7 +461,7 @@ mergeFunc <-
                         statesres[chrom==j, sq.state[i]][ind.nonna] <-
                             states
                         statesres[chrom==j, sq.pred[i]][ind.nonna] <- pred
-                        
+
                         break
                     }
                     else
@@ -474,14 +483,14 @@ mergeFunc <-
                         }
                     }
                 }
-                
+
             }
             statesres[chrom==j, sq.state[i]][ind.nonna] <- states
             statesres[chrom==j, sq.pred[i]][ind.nonna] <- pred
         }
     }
     list(states.hmm = statesres)
-    
+
 }
 
 #################################################################################
@@ -523,24 +532,24 @@ computeSD.func <-
 
             states.change <- diff(states)
             states.change.num <- length(states.change[states.change!=0])
-            
+
             ##if (length(states.uniq) <= maxState)
             if ((length(states.uniq) <= maxState) && (states.change.num <= maxStateChange))
             {
-                
+
                 for (k in states.uniq)
                 {
                     obs.state <- obs[states==k]
                     md <- mad(obs.state, na.rm = TRUE)
                     med <- median(obs.state, na.rm = TRUE)
-                    
+
                     ##use only states with >=  minClone and mad of state is <= maxmadUse and
                     ##median of state is < maxmedUse
                     if ((length(obs.state) >= minClone) && (md <= maxmadUse) && (abs(med) <= maxmedUse))
                     {
-                        
+
                         mad.tmp1 <- c(mad.tmp1, md)
-                        
+
                     }
                 }
             }
@@ -556,14 +565,14 @@ computeSD.func <-
             mad.tmp <- mad.tmp[-1]
             madGenome[i] <- median(mad.tmp)
         }
-        
+
     }
     if (length(madGenome[is.na(madGenome)]) > 0)
         cat("Warning: MAD could not had ben computed for one of the\
 samples\n")
-    
+
     list(madChrom = madChrom, madGenome = madGenome)
-    
+
 }
 #################################
 #################################
@@ -572,9 +581,9 @@ findOutliers.func <-
     function(thres=madGenome, factor=4, statesres=states.bic)
 {
     ##"state", "rpred", "prob", "pred", "disp", "obs"
-    
+
     thres <- thres*factor
-    
+
     chrom <- statesres[,1]
     sq.state <- seq(3, ncol(statesres), b=6)
     sq.rpred <- seq(4, ncol(statesres), b=6)
@@ -583,11 +592,11 @@ findOutliers.func <-
     sq.obs <- seq(8, ncol(statesres), b=6)
 
     ##outputs
-    ##1 = outlier	
+    ##1 = outlier
     outlier <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
     states.out <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
 
-    ##predicted values for all (including outliers) with median computed without outliers	
+    ##predicted values for all (including outliers) with median computed without outliers
     pred.out <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
     ##predicted values for all but outliers
     pred.obs.out <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
@@ -619,11 +628,11 @@ findOutliers.func <-
 #####NO longer do this ####################################################
                 }
             }
-            ##recompute medians (predicted) without outliers -- use medians now	
+            ##recompute medians (predicted) without outliers -- use medians now
             ##Note that predicted before indicated means and now indicate median
 
             ##states other than "-1" -- i.e. statesless
-            
+
             states.uniq <- unique(states)
             for (m in 1:length(states.uniq))
             {
@@ -631,9 +640,9 @@ findOutliers.func <-
                 pred[states==states.uniq[m]] <-  median(obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0])
                 ##predictions for non-outliers only
                 pred.obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0] <-  median(obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0])
-                
+
             }
-            
+
             pred.obs.out[chrom==j, i][ind.nonna] <- pred.obs
             pred.out[chrom==j, i][ind.nonna] <- pred
         }
@@ -647,7 +656,7 @@ findOutliers.func <-
 findAber.func <-
     function(maxClones =1, maxLen = 1000, statesres = states.bic)
 {
-    ##either fewer than maxClones or length <= maxLen. 
+    ##either fewer than maxClones or length <= maxLen.
 
     chrom <- statesres[,1]
     kb <- statesres[,2]
@@ -662,7 +671,7 @@ findAber.func <-
             ind.nonna <- (1:length(statesres[chrom==j, sq.obs[i]]))[!is.na(statesres[chrom==j, sq.obs[i]])]
             states <- statesres[chrom==j, sq.state[i]][ind.nonna]
             kbnow <- kb[chrom==j][ind.nonna]
-            
+
             abernow <- rep(0, length(kbnow))
 
             num <- 1
@@ -670,7 +679,7 @@ findAber.func <-
             {
                 if (states[m-1] != states[m])
                 {
-                    ##first clone is different from 2nd <- it's aberration	
+                    ##first clone is different from 2nd <- it's aberration
                     if (m == 2)
                     {
                         abernow[1] <- 1
@@ -680,30 +689,30 @@ findAber.func <-
                     {
                         abernow[1:2] <- 1
                     }
-                    
-                    ##last clone is different from previous <- it's aberration	
+
+                    ##last clone is different from previous <- it's aberration
                     ##the clones before last may be an aberration as well
                     if (m == length(states))
                     {
-                        
+
                         abernow[length(states)] <- 1
-                        
+
                     }
 
-                    ##clone before last is different from previous <- it's aberration	
+                    ##clone before last is different from previous <- it's aberration
                     if (m == (length(states)-1))
                     {
-                        
+
                         abernow[(length(states)-1):(length(states))] <- 1
-                        
+
                     }
-                    
+
                     if (m <= length(states))
-                    {	
+                    {
                         ##take middle distances: if number of clones is small or they are very close together
-                        
+
                         if ((num <= maxClones) || ((kbnow[m-1]-kbnow[m-num]) <= maxLen))
-                            
+
                         {
                             abernow[(m-num):(m-1)] <- 1
                         }
@@ -757,41 +766,41 @@ findTrans.func <-
             translennow <- rep(0, length(states))
             states.diff <- diff(states[abernow==0])
             ind <- (1:length(states.diff))[states.diff != 0]
-            
+
             if (length(ind) > 0)
             {
                 start <- ind+1
                 end <-  ind
-                
+
                 transnow[abernow==0][start] <- 1
                 transnow[abernow==0][end] <- 2
-                
+
             }
-            
+
 
 #######
             ##compute the length of the corresponding stretches: same number is assigned for all clones
-            ##between 1 and 2 including aberrations and outliers. distance to the first end is 
+            ##between 1 and 2 including aberrations and outliers. distance to the first end is
             ##computed from the start and of the last stretch is computed from the last clone to the
             ##end of chromosome.
 
             st <- c(1,(1:length(transnow))[transnow==1])
             en <- c((1:length(transnow))[transnow==2], length(transnow))
-            
+
             for (m in 1:length(st))
             {
                 translennow[st[m]:en[m]] <- kbnow[en[m]]-kbnow[st[m]]
-                
+
             }
-            
+
             translen.matrix[chrom==j,i][ind.nonna] <- translennow
-            
-            
+
+
 ############
 
             transnow[abernow==1] <- 3
             trans.matrix[chrom==j,i][ind.nonna] <- transnow
-            
+
         }
     }
     list(trans.matrix=trans.matrix, translen.matrix=translen.matrix)
@@ -815,39 +824,39 @@ findAmplif.func <-
     sq.obs <- seq(8, ncol(statesres), b=6)
 
     amplif.matrix <- matrix(0, nrow=length(kb), ncol=length(sq.state))
-    
+
     for (i in 1:length(sq.state))
     {
 ###        print(i)
         for (j in 1:length(unique(chrom)))
         {
-            
+
             ind.nonna <- (1:length(statesres[chrom==j, sq.obs[i]]))[!is.na(statesres[chrom==j, sq.obs[i]])]
-            
+
             abernow <- aber[chrom==j,i][ind.nonna]
             outliersnow <- outliers[chrom==j,i][ind.nonna]
             ##predicted value for the stretch
 
             prednow <- pred[chrom==j,i][ind.nonna]
-            
+
             ##predicted value for the stretch, outliers have observed value
             predobsnow <- pred.obs[chrom==j,i][ind.nonna]
-            
+
             obsnow <- statesres[chrom==j,sq.obs[i]][ind.nonna]
             transnow <- trans.matr[chrom==j,i][ind.nonna]
             translennow <- translen.matr[chrom==j,i][ind.nonna]
 
             amplifnow <- rep(0, length(obsnow))
-            
-########maybe remove############		
-            ##if aberration or outlier and > absValSingle 		
-            ##			
+
+########maybe remove############
+            ##if aberration or outlier and > absValSingle
+            ##
             ##			amplifnow[(abernow==1 | outliersnow ==1) & obsnow >= absValSingle] <- 1
 ##################################
-            ##if aberration and greater by diffVal1 than max of the two surrounding  
+            ##if aberration and greater by diffVal1 than max of the two surrounding
             ##stretches or
             ##if outlier and greater by diffVal2 than its stretch and > 1
-            
+
             ##outlier is much larger (diffVal) that its stretch
             amplifnow[outliersnow ==1 & ((obsnow - prednow)	>= diffVal1)] <- 1
             ##outlier and > 1 and diffVal2 greater than its stretch
@@ -855,11 +864,11 @@ findAmplif.func <-
             amplifnow[outliersnow ==1 & ((obsnow - prednow)	>= diffVal2) & obsnow >= absValSingle] <- 1
 
             ##aberration is much larger than maximum of the two surrounding stretches
-            ##need to take spacial care when no stertches to the left or to the right 
+            ##need to take spacial care when no stertches to the left or to the right
             indaber <- (1:length(amplifnow))[abernow==1]
             if (length(indaber) > 0)
             {
-                
+
                 indstretch <- (1:length(amplifnow))[abernow==0 & outliersnow==0]
                 for (m in 1:length(indaber))
                 {
@@ -885,19 +894,19 @@ findAmplif.func <-
                             amplifnow[indaber[m]] <- 1
                         }
                     }
-                }	
-            }			
-            
-            
+                }
+            }
 
-            ##if part of the stretch and observed value of > absValRegion and 
-            ##NOT YET: larger by diffValRegion than max of the surrounding regions regions and 
+
+
+            ##if part of the stretch and observed value of > absValRegion and
+            ##NOT YET: larger by diffValRegion than max of the surrounding regions regions and
             ##size of the corresponding stretch <= maxSize
-            
+
             amplifnow[abernow==0 & outliersnow ==0 & obsnow >= absValRegion & translennow <= maxSize] <- 1
-            
+
             amplif.matrix[chrom==j,i][ind.nonna] <- amplifnow
-            
+
         }
     }
     list(amplif = amplif.matrix)
@@ -963,7 +972,7 @@ plotChrom.hmm.func <-
         kb <- (statesres[chrom==chr[j],2][ind.nonna])/1000
         obs <- statesres[chrom==chr[j], sq.obs[sample]][ind.nonna]
         states <- statesres[chrom==chr[j], sq.state[sample]][ind.nonna]
-        nstates <- length(unique(states)) 
+        nstates <- length(unique(states))
 
         abernow <- aber[chrom==chr[j],sample][ind.nonna]
         outliersnow <- outliers[chrom==chr[j],sample][ind.nonna]
@@ -1017,9 +1026,9 @@ plotChrom.hmm.func <-
         }
 
 
-        
+
         ##predicted states:
-        
+
         plot(kb, prednow, xlab="", ylab="", ylim=c(y.min, y.max), type="l", col="blue", xlim=c(0, chrominfo$length[chr[j]]/1000))
         points(kb, prednow,col="black")
         title(xlab="kb (in 1000's)", ylab="data (smoothed)")
@@ -1054,9 +1063,9 @@ plotChrom.hmm.func <-
         {
             points(kb[amplifnow ==1], obs[amplifnow ==1], col="red")
         }
-    } 
+    }
     if (plotend)
-    {	
+    {
 	dev.off()
     }
 }
@@ -1084,7 +1093,7 @@ plotCGH.hmm.func <-
 
 
 #########
-    chrom.rat <- chrominfo$length/max(chrominfo$length)  
+    chrom.rat <- chrominfo$length/max(chrominfo$length)
     ##i.e. for each chromosome it repreesents the fraction of length of the
     ##longest chromosome
     ##
@@ -1135,9 +1144,9 @@ plotCGH.hmm.func <-
 	samplename <- smpnames[smp]
         ##so now samplename is a name
     }
-    else ##samplename 
+    else ##samplename
     {
-	
+
 	smp <- (1:length(smpnames))[smpnames==samplename]
     }
 ##############
@@ -1193,7 +1202,7 @@ plotCGH.hmm.func <-
 
     ##plot chromosomes
 
-    scr.seq <- c(10:27, 31:34, 30)  
+    scr.seq <- c(10:27, 31:34, 30)
     j.seq <- 1:length(chrom.uniq)
     for (j in j.seq)
     {
@@ -1202,10 +1211,10 @@ plotCGH.hmm.func <-
         screen(scr.seq[j])
         par(cex=.5, pch=20, lab=c(15,4,7), tcl=-.2, las=1, oma=c(0,0,0,0), cex.axis=1.3, cex.main=1.3, mgp=c(0,.15,0), lwd=.5)
         par(pin=c(chromFull.info$rat[j]*fact, .65))
-        
+
         plot((datainfo$kb[datainfo$Chrom==j][ind.nonna])/1000, vals[datainfo$Chrom==j][ind.nonna], ylim=c(y.min[j],y.max[j]), xlab="", ylab="", type="l", col="blue", xlim=c(0, chromFull.info$length[j]/1000))
         points((datainfo$kb[datainfo$Chrom==j][ind.nonna])/1000, vals[datainfo$Chrom==j][ind.nonna], col="black")
-        
+
         ##if (j < 23)
         ##{
         ##title(main=paste("Chr",j), line=.1)
@@ -1218,19 +1227,19 @@ plotCGH.hmm.func <-
         title(main=paste("Chr",j), line=.1)
 
         abline(h=seq(y.min[j],y.max[j], b=.5), lty=3)
-        abline(v=0, lty=2)		
+        abline(v=0, lty=2)
         abline(v=chromFull.info$centromere[j]/1000, lty=2, col="red")
 
 ####################
         ##plotting transitions and aberrations
 
         kb <- (datainfo$kb[datainfo$Chrom==j][ind.nonna])/1000
-        chrom <- datainfo$Chrom	
-        
+        chrom <- datainfo$Chrom
+
         obs <- vals[chrom==j][ind.nonna]
 
         states <- statesres[chrom==j, sq.state[smp]][ind.nonna]
-        nstates <- length(unique(states)) 
+        nstates <- length(unique(states))
 
         abernow <- aber[chrom==j,smp][ind.nonna]
         outliersnow <- outliers[chrom==j,smp][ind.nonna]
@@ -1264,7 +1273,7 @@ plotCGH.hmm.func <-
         {
             points(kb[amplifnow ==1], obs[amplifnow ==1], col="red")
         }
-	
+
 
 
 
@@ -1273,9 +1282,9 @@ plotCGH.hmm.func <-
 
 
 
-        
+
     }
-    
+
     ##plot genome:
     screen(9 )
 
@@ -1284,7 +1293,7 @@ plotCGH.hmm.func <-
     plot(clone.genomepos/1000, vals, ylim=c(ygenome.min,ygenome.max), xlab="", ylab="", xlim=c(min(clone.genomepos[clone.genomepos>0], na.rm = TRUE)/1000, clone.genomepos[length(clone.genomepos[clone.genomepos>0])]/1000), col="black", type="l", lwd=1)
     title(main="Whole Genome (not to horizontal scale)",line=.1)
     for (i in seq(1,21,b=2))
-    {	
+    {
         mtext(paste("", i), side = 1, at = (chromFull.info$mid[i]/1000), line=.3, col="red", cex.main=.5)
     }
     mtext("X", side = 1, at = (chromFull.info$mid[nrow(chromFull.info)]/1000), line=.3, col="red",cex.main=.5)
@@ -1296,7 +1305,7 @@ plotCGH.hmm.func <-
     dev.off()
 
 ####################
-    
+
 
 }
 
@@ -1323,8 +1332,8 @@ smoothData.func <-
         }
     }
     list(data.smooth = data.smooth)
-    
-    
+
+
 
 }
 ##################################
@@ -1338,8 +1347,8 @@ thresholdData.func <-
              res1$pred.out, noise = madGenome, factor=2.5, minMed =
              .1, thresSingle=FALSE)
 {
-    
-    thres <- noise*factor	
+
+    thres <- noise*factor
 
     if (length(minMed) ==1)
     {
@@ -1354,10 +1363,10 @@ thresholdData.func <-
         if (thresSingle)
         {
             ##if use individual thresholds for each clone
-            
+
             data.thres[obs >= thres.i] <- 1
             data.thres[obs <= -thres,i] <- -1
-            
+
         }
         else
         {
@@ -1366,14 +1375,14 @@ thresholdData.func <-
             data.thres[(aber[,i]==1 | outliers[,i]==1) & obs <= -thres,i ] <- -1
             data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] >=  minMed[i] ,i] <- 1
             data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] <= -minMed[i] ,i] <- -1
-            
-            
+
+
         }
-        
+
     }
     list(data.thres = data.thres)
-    
-    
+
+
 
 }
 ##################################
@@ -1428,7 +1437,7 @@ plotChrom.samples.func <-
         kb <- (statesres[chrom==chr[j],2][ind.nonna])/1000
         obs <- statesres[chrom==chr[j], sq.obs[sample[j]]][ind.nonna]
         states <- statesres[chrom==chr[j], sq.state[sample[j]]][ind.nonna]
-        nstates <- length(unique(states)) 
+        nstates <- length(unique(states))
 
         abernow <- aber[chrom==chr[j],sample[j]][ind.nonna]
         outliersnow <- outliers[chrom==chr[j],sample[j]][ind.nonna]
@@ -1480,7 +1489,7 @@ plotChrom.samples.func <-
             points(kb[amplifnow ==1], obs[amplifnow ==1], col="red")
         }
 
-    } 
+    }
 
 }
 ##################################
@@ -1536,7 +1545,7 @@ plotChrom.grey.samples.func <-
         kb <- (statesres[chrom==chr[j],2][ind.nonna])/1000
         obs <- statesres[chrom==chr[j], sq.obs[sample[j]]][ind.nonna]
         states <- statesres[chrom==chr[j], sq.state[sample[j]]][ind.nonna]
-        nstates <- length(unique(states)) 
+        nstates <- length(unique(states))
 
         abernow <- aber[chrom==chr[j],sample[j]][ind.nonna]
         outliersnow <- outliers[chrom==chr[j],sample[j]][ind.nonna]
@@ -1588,6 +1597,6 @@ plotChrom.grey.samples.func <-
             points(kb[amplifnow ==1], obs[amplifnow ==1], col="grey30")
         }
 
-    } 
+    }
 
 }
