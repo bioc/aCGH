@@ -1,0 +1,313 @@
+% -*- mode: noweb;noweb-font-lock-mode: R-mode; -*-
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+% \VignetteIndexEntry{aCGH Overview}
+% \VignetteDepends{tools, aCGH}
+% \VignetteKeywords{DNA Copy Number Analysis}
+% \VignettePackage{aCGH}
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,psfig,pstricks,fullpage}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+\SweaveOpts{echo=FALSE}
+\usepackage{a4wide}
+
+\parindent 0in
+
+\bibliographystyle{abbrvnat}
+
+\begin{document}
+
+\title{\bf Bioconductor's aCGH package}
+
+\author{Jane Fridlyand$^1$ and Peter Dimitrov$^2$}
+
+\maketitle
+
+\begin{center}
+1. Department of Epidemiology and Biostatistics, and Comprehensive Cancer Center, University of California, San Francisco, {\tt jfridlyand@cc.ucsf.edu}\\
+2. Division of Biostatistics, University of California, Berkeley, {\tt dimitrov@stat.berkeley.edu}
+\end{center}
+
+\tableofcontents
+
+%%%{\red TO DO:\\
+%%%*** ADD: a figure explaining the layout terminology.\\
+%%%*** ADD: pictures for classes.\\
+%%%}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Overview}
+
+This document presents an overview of the {\tt aCGH} package, which provides wide basic functions for reading, analyzing and plotting array Comparative Genomic Hybridization data (\cite{Snijdersetal01}). Specific example for reading data in is using output of the custom freely available programs, SPOT and SPROC (\cite{Jainetal02}). These programs provide image quantification and pre-processing.  Outputs of all the other image processing software need to be combined into a single file containing observed values for each clone and samples and then read in as a matrix. 
+
+\section{Data}
+
+The data used in the example was generated in in lab of Dr. Fred Waldman at UCSF Comprehensive Cancer Center (\cite{Nakaoetal04}).Array CGH has been done on 125 colorectal fresh-frozen primary tumors and the associations with various phenotypes were analyzed. To reduce running time, only 40 samples are used in the 
+examples.
+
+This is where the examples start:
+
+1. Creating aCGH object from log2.ratios and clone info files. 
+
+Each array CGH object has to contain the log2ratios reperesenting
+relative copy number along with the mapping information including but
+not limited to clone name, chromosome and kb relative to the
+chromosome. Optionally there may be phenotypes associated with each
+sample.
+
+<<echo=TRUE,print=FALSE>>=
+library(aCGH)
+datadir <- system.file("data", package = "aCGH")
+clones.info <-
+      read.table(file = file.path(datadir, "clones.info.ex.csv"),
+                 header = T, sep = "\t")
+log2.ratios <-
+      read.table(file = file.path(datadir, "log2.ratios.ex.csv"),
+                 header = T, sep = "\t")
+pheno.type <-
+      read.table(file = file.path(datadir, "pheno.type.ex.csv"),
+                 header = T, sep = "\t")
+ex.acgh <- create.aCGH(log2.ratios, clones.info, pheno.type)
+@
+%%<<results=hide>>=
+%%datadir <- system.file("data", package = "aCGH")
+%%clones.info <-
+%%      read.table(file = file.path(datadir, "clones.info.ex.csv"),
+%%                 header = T, sep = "\t")
+%%log2.ratios <-
+%%      read.table(file = file.path(datadir, "log2.ratios.ex.csv"),
+%%                 header = T, sep = "\t")
+%%pheno.type <-
+%%      read.table(file = file.path(datadir, "pheno.type.ex.csv"),
+%%                 header = T, sep = "\t")
+%%create.aCGH(log2.ratios, clones.info, pheno.type)
+
+2. Printing, summary and basic plotting (fig.1) for objects of class
+aCGH.
+
+<<echo=TRUE,print=FALSE>>=
+data(colorectal)
+colorectal
+summary(colorectal)
+@
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plot(colorectal)
+@
+\end{center}
+\caption{Heatmap of the clustered samples}
+\end{figure}
+
+<<echo=TRUE,print=FALSE>>=
+sample.names(colorectal)
+phenotype(colorectal)[1:4,]
+@
+
+3. Reading Sproc files
+
+Here we demonstrate reading of the sproc files and combining them into one 
+array CGH object. Sproc file format is specific to the custom SPROC
+processing software at UCSF Cancer Center.
+
+<<echo=TRUE,print=FALSE>>=
+datadir <- system.file("examples", package = "aCGH")
+latest.mapping.file <- file.path(datadir, "human.clones.info.Jul03.csv")
+ex.acgh <-
+    aCGH.read.Sprocs(system(paste("ls -1", file.path(datadir,
+                    "*.txt")), intern = T), latest.mapping.file,
+                    chrom.remove.threshold = 23)
+ex.acgh
+@
+
+4. Basic heatmap plot for batch of aCGH Sproc files. (fig.2)
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plot(ex.acgh)
+@
+\end{center}
+\caption{Basic heatmap plot for batch of aCGH Sproc files}
+\end{figure}
+
+5. Subsetting example
+
+<<echo=TRUE,print=FALSE>>=
+cr <- colorectal[ ,1:3]
+@
+
+6. Basic plot for the ordered log2 ratios along the genome
+
+The relative copy number is plotted along the genome with clones
+placed in the genomic order (fig. 3). Chromosome Y is excluded.
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotGenome(ex.acgh, Y = FALSE)
+@
+\end{center}
+\caption{Basic plot for the ordered log2 ratios along the genome}
+\end{figure}
+
+7. Plotting hmm states.
+
+For a given sample, each chromosome is plotted on a separate page
+along with its smoothed values(figs. 4). The genomic events
+such as transitions, focal aberrations and amplifications are
+indicated. The outliers are also marked.
+
+<<echo=TRUE,print=FALSE>>=
+## Determining hmm states of the clones
+
+hmm(ex.acgh) <- find.hmm.states(ex.acgh)
+
+## Calculating the standard deviations for each array. Standard error is 
+##calculated for each region and then averaged across regions.
+
+sd.samples(ex.acgh) <- computeSD.Samples(ex.acgh)
+
+## Finding the genomic events associated with each sample using 
+##results of the partitioning into the states.
+
+genomic.events(ex.acgh) <- find.genomic.events(ex.acgh)
+
+## Plotting and printing the hmm states either to the screen or into the 
+##postscript file.
+
+##postscript("hmm.states.temp.ps");plotHmmStates(ex.acgh, sample.ind=1);dev.off()
+@
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotHmmStates(ex.acgh, sample.ind = 1)
+@
+\end{center}
+\caption{Plotting the hmm states found for ex.acgh object}
+\end{figure}
+
+8. Plotting summary of the tumor profiles(fig. 5). Here the distribution of
+various genomic events as well as their freqeuncy by location is displayed.
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotSummaryProfile(colorectal)	
+@
+\end{center}
+\caption{Plotting summary of the tumor profiles}
+\end{figure}
+
+9. Testing association of clones with sex, followed by
+plotting the p.values. Use mt.maxT function from multtest package to
+test differences in group means for each clone grouped by sex. Plot
+the result along the genome displaying the frequencies of gains and losses
+as well well as height of the statistic correponsding to each
+clone(figs. 6 and 7.). The p-value can be adjusted and the horizontal
+lines indicate chosen level of significance.
+
+<<echo=TRUE,print=FALSE>>=
+library(multtest)
+
+colnames(phenotype(colorectal))
+sex <- phenotype(colorectal)$sex
+sex.na <- !is.na(sex)
+colorectal.na <- colorectal[ ,sex.na ]
+dat <- log2.ratios.imputed(colorectal.na)
+resT.sex <- mt.maxT(dat, sex[sex.na], test = "t", B = 1000)
+@
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotFreqStat(colorectal.na, resT.sex, sex[sex.na], titles =
+             c("Female", "Male"), X = FALSE, Y = FALSE)
+@
+\end{center}
+\caption{Frequency plots of the samples with respect to the sex groups}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotSummaryProfile(colorectal, response = sex,
+                   titles = c("Female", "Male"),
+                   X = FALSE, Y = FALSE, maxChrom = 22)
+@
+\end{center}
+\caption{Plotting summary of the tumor profiles}
+\end{figure}
+
+10. Derive statistics and p-values for testing the linear association
+of age with the log2 ratios of each clone along the tumors
+
+<<echo=TRUE,print=FALSE>>=
+age <- phenotype(colorectal)$age
+age.na <- !is.na(age)
+colorectal.na <- colorectal[ ,age.na ]
+dat <- log2.ratios.imputed(colorectal.na)
+stat.age <- sapply(1:nrow(dat),
+                   function(i) {
+                      if (i %% 100 == 0)
+                         cat(i, "\n")
+                      lm.fit <-
+                          summary(lm(dat[i,] ~ age[age.na]))
+                      c(lm.fit$fstatistic[1],
+                        1 - pf(lm.fit$fstatistic[1],
+                               lm.fit$fstatistic[2],
+                               lm.fit$fstatistic[3])
+                       )
+                   }
+                   )
+@
+
+11. Here we create a resT object using the values derived above.
+
+<<echo=TRUE,print=FALSE>>=
+resT.age <- data.frame(index = 1:ncol(stat.age),
+                       teststat = stat.age[1,],
+                       rawp = stat.age[2,],
+                       adjp = p.adjust(stat.age[2,], "fdr"))
+resT.age <- resT.age[order(resT.age$adjp),]
+@
+%%%\begin{figure}[h]
+%%%  \begin{center}
+%%%<<fig=TRUE,echo=TRUE>>=
+%%%plotFreqStat(colorectal.na, resT.age, age[age.na])
+%%%@
+%%%    \caption{Plotting summary of the tumor profiles}
+%%%  \end{center}
+%%%\end{figure}
+
+
+12. Here we cluster samples within each phenotype using chromosomes 4,
+8 and 9 and display the phenotype labels, in this case, sex (fig. 8).
+
+\begin{figure}[h]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotvalGenome.func(colorectal, response = phenotype(colorectal)$sex,
+		titles = c("Female", "Male"),
+		byclass = TRUE, showaber = TRUE, vecchrom = c(4,8,9),
+		dendPlot = FALSE, imp = FALSE)
+@
+\end{center}
+\caption{Clustering of the samples by sex}
+\end{figure}
+
+%%\SweaveOpts{echo=true}
+
+\section{Acknowledgements}
+
+The authors would like to express their gratitude to Drs. Fred Waldman and Kshama Mehta for sharing the data and to Dr. Taku Tokuyasu for quantifying the images. This work would not be possible without generous support and advice of Drs. Donna Albertson, Dan Pinkel and Ajay Jain. Antoine Snijders has played an integral role in developing ideas leading to the algorithms implemented in this package.
+
+\bibliography{aCGH}
+
+\end{document}
