@@ -99,6 +99,7 @@ impute.lowess <-
 
     data.imp <- log2.ratios <- log2.ratios(aCGH.obj)
     clones.info <- clones.info(aCGH.obj)
+    maxChrom <- min(max(unique(clones.info$Chrom)), maxChrom)
     for (j in 1:maxChrom)
     {
         
@@ -153,7 +154,7 @@ impute.lowess <-
         for (i in 1:ncol(data.imp))
         {
             
-            vec <- (as.matrix(data.imp))[,i]
+            vec <- data.imp[ ,i ]
             ind <- which(is.na(vec))
             if (length(ind) > 0)
             {
@@ -230,24 +231,28 @@ hmm <- function(aCGH.obj) aCGH.obj$hmm
     {
         
         nstates.ok <-
-            all(
-                sapply(1:length(aCGH.obj$hmm$nstates.hmm),
-                       function(i)
-                       all(dim(aCGH.obj$hmm$nstates.hmm[[i]]) ==
-                           dim(value$nstates.hmm[[i]]))
-                       )
-                )
+            length(value$nstates.hmm) ==
+                length(aCGH.obj$hmm$nstates.hmm) &&
+        all(
+            sapply(1:length(aCGH.obj$hmm$nstates.hmm),
+                   function(i)
+                   all(dim(aCGH.obj$hmm$nstates.hmm[[i]]) ==
+                       dim(value$nstates.hmm[[i]]))
+                   )
+            )
         states.ok <-
-            all(
-                sapply(1:length(aCGH.obj$hmm$states.hmm),
-                       function(i)
-                       all(dim(aCGH.obj$hmm$states.hmm[[i]]) ==
-                           dim(value$states.hmm[[i]]))
-                       )
-                )
+            length(value$states.hmm) ==
+                length(aCGH.obj$hmm$states.hmm) &&
+        all(
+            sapply(1:length(aCGH.obj$hmm$states.hmm),
+                   function(i)
+                   all(dim(aCGH.obj$hmm$states.hmm[[i]]) ==
+                       dim(value$states.hmm[[i]]))
+                   )
+            )
         if (!nstates.ok || !states.ok)
             stop("invalid replacement dimensions")
-
+        
     }
     aCGH.obj$hmm <- value
     aCGH.obj
@@ -290,13 +295,14 @@ sd.samples <- function(aCGH.obj) aCGH.obj$sd.samples
     {
         
         sd.samples.ok <-
-            all(
-                sapply(1:length(aCGH.obj$sd.samples),
-                       function(i)
-                       all(dim(aCGH.obj$sd.samples[[i]]) == dim(value[[i]]))
-                       )
+            length(value) == length(aCGH.obj$sd.samples) &&
+        all(
+            sapply(1:length(aCGH.obj$sd.samples),
+                   function(i)
+                   all(dim(aCGH.obj$sd.samples[[i]]) == dim(value[[i]]))
+                   )
                 )
-        if (sd.samples.ok)
+        if (!sd.samples.ok)
             stop("invalid replacement dimensions")
 
     }
@@ -310,7 +316,7 @@ find.genomic.events <-
              factor = 5, maxClones = 1, maxLen = 1000,
              absValSingle = 1, absValRegion = 1, diffVal1 = 1,
              diffVal2 = .5, maxSize = 10000, pChrom.min = .9,
-             medChrom.min = .1)
+             medChrom.min = .1, merge = TRUE)
 {
 
     if (is.null(hmm(aCGH.obj)))
@@ -326,20 +332,21 @@ function")
 ###    ind.samples <- (1:ncol(data))
     ncols <- ncol(data)
 
-    hmm.res.merge <-
-        mergeFunc(statesres = hmm$states.hmm[[modelUse]],
-                   minDiff = minDiff)
+    if (merge == TRUE)
+        hmm.res.merge <-
+            mergeFunc(statesres = hmm$states.hmm[[modelUse]],
+                      minDiff = minDiff)
     statesMatrix <- hmm.res.merge$states.hmm
     ##identifies outliers (factor times SD from the the median of the state)
     cat("Finding outliers\n")
     outliers <-
-        findOutliers.func(thres = sd.samples$madGenome, factor =
-                          factor, statesres = statesMatrix)
+        findOutliers.func(thres = sd.samples$madGenome,
+                          factor = factor, statesres = statesMatrix)
     ##identifies focal low level aberrations
     cat("Finding focal low level aberrations\n")
     aberrations <-
-        findAber.func(maxClones = maxClones, maxLen = maxLen, statesres =
-                      statesMatrix)
+        findAber.func(maxClones = maxClones, maxLen = maxLen,
+                      statesres = statesMatrix)
     ##identifies transitions: start and end of the states  
     cat("Finding transitions\n")
     transitions <-
@@ -402,7 +409,7 @@ function")
         for (i in 1:ncols)
         {
 
-            numTrans[j, i] <- sum(trans[ ,i] == 1)
+            numTrans[j, i] <- sum(trans[ ,i] == 1, na.rm=TRUE)
             if (numTrans[j, i] > 0)
                 numTrans.binary[j, i] <- 1
             else # if no transitions
@@ -424,9 +431,6 @@ function")
                     1 - pnorm((p - .5) / sqrt((.5 ^ 2) / length(obs)))
                 pvClones[j, i] <- pv
                 medClones[j, i] <- median(obs)
-                #if ((p < .95) && (p >= .9) &&
-                #    (abs(median(obs)) >= .15))
-                #    print(c(j,i))
                 if ((p >= p.min) && (abs(median(obs)) >= med.min))
                 {
                     
@@ -442,16 +446,19 @@ function")
                     wholeChromGainLoss[j, i] <- 0
                 
             }
-            numAmplif[j,i] <- sum(amplif[ ,i ] == 1)
+            numAmplif[j,i] <- sum(amplif[ ,i ] == 1, na.rm=TRUE)
             if (numAmplif[j,i] > 0)
                 numAmplif.binary[j,i] <- 1
-            numAber[j,i] <- sum(aber[ ,i ] == 1)
+            numAber[j,i] <- sum(aber[ ,i ] == 1, na.rm=TRUE)
             if (numAber[j,i] > 0)
                 numAber.binary[j,i] <- 1
-            numOutlier[j,i] <- sum(outlier[ ,i ] == 1)
+            numOutlier[j,i] <- sum(outlier[ ,i ] == 1, na.rm=TRUE)
             if (numOutlier[j,i] > 0)
                 numOutlier.binary[j,i] <- 1
-            try1 <- diff(amplif[ ,i ])
+	    amp <- amplif[,i]
+	    ind.na <- which(is.na(amp))
+	    amp <- amp[-ind.na]
+            try1 <- diff(amp)
             tmps <- which(try1 == 1) + 1
             tmpe <- which(try1 == -1)
             if (length(tmps) > length(tmpe))
@@ -463,7 +470,7 @@ function")
             if (length(tmpe) == length(tmps))
             {
 
-                kb.ind <- kb[ind]
+                kb.ind <- kb[ind][-ind.na]
                 tmplen <-
                     (kb.ind[tmpe] - kb.ind[tmps]) +
                         rep(1000, length(tmpe))
@@ -506,14 +513,15 @@ genomic.events <- function(aCGH.obj) aCGH.obj$genomic.events
     {
         
         events.ok <-
-            all(
-                sapply(1:length(aCGH.obj$genomic.events),
-                       function(i)
-                       all(dim(aCGH.obj$genomic.events[[i]]) ==
-                           dim(value[[i]]))
-                       )
-                )
-        if (events.ok)
+            length(value) == length(aCGH.obj$genomic.events) &&
+        all(
+            sapply(1:length(aCGH.obj$genomic.events),
+                   function(i)
+                   all(dim(aCGH.obj$genomic.events[[i]]) ==
+                       dim(value[[i]]))
+                   )
+            )
+        if (!events.ok)
             stop("invalid replacement dimensions")
 
     }

@@ -13,7 +13,8 @@ find.genomic.events(aCGH.obj, maxChrom = 23, minDiff = 0.25,
                     modelUse = 1, factor = 5, maxClones = 1,
                     maxLen = 1000, absValSingle = 1, absValRegion = 1,
                     diffVal1 = 1, diffVal2 = 0.5, maxSize = 10000,
-                    pChrom.min = 0.9, medChrom.min = 0.1)
+                    pChrom.min = 0.9, medChrom.min = 0.1,
+                    merge = TRUE)
 }
 \arguments{
   \item{aCGH.obj}{Object of class aCGH}
@@ -28,13 +29,26 @@ find.genomic.events(aCGH.obj, maxChrom = 23, minDiff = 0.25,
   \item{diffVal1}{Determines amplifications. See \code{\link{findAmplif.func}}}
   \item{diffVal2}{Determines amplifications. See \code{\link{findAmplif.func}}}
   \item{maxSize}{Determines amplifications. See \code{\link{findAmplif.func}}}
-  \item{pChrom.min}{Determines whole chromosomal gains and losses. Chromosome should contain no transitions, have its absolute median equal or greater than \code{medChrom.min} and at least \code{medChrom.min} has to be greater or less than 0. }
-  \item{medChrom.min}{Determines whole chromosomal gains and losses. Chromosome should contain no transitions, have its absolute median equal or greater than \code{medChrom.min} and at least \code{medChrom.min} has to be greater or less than 0.}
+  \item{pChrom.min}{
+    Determines whole chromosomal gains and losses. Chromosome should
+    contain no transitions, have its absolute median equal or greater
+    than \code{medChrom.min} and at least \code{medChrom.min} has to be
+    greater or less than 0.
+  }
+  \item{medChrom.min}{
+    Determines whole chromosomal gains and losses. Chromosome should
+    contain no transitions, have its absolute median equal or greater
+    than \code{medChrom.min} and at least \code{medChrom.min} has to be
+    greater or less than 0.
+  }
+  \item{merge}{
+    If TRUE merges the HMM states by calling \code{\link{mergeFunc}}.
+  }
 }
 \details{
   The default parameters generally work. Threshold for merging may be
   changed depending on the expected normal cell contamination and/or
-  expected magnitude of the changes. AIC model generally works ,
+  expected magnitude of the changes. AIC model generally works,
   however, may need to be readjusted depending on how liberal or
   conservative one wants to be in finding genomic events. We recommend
   BIC criterion with delta = 1 for noisier data.
@@ -88,7 +102,7 @@ find.genomic.events(aCGH.obj, maxChrom = 23, minDiff = 0.25,
   }
   \item{amplifications}{
     list containing a matrix of dimensions number of clones by number
-    of samples. See \code{\link{findAmplif.func}}
+    of samples. See \code{\link{findAmplif.func}}.
   }
 }
 \seealso{
@@ -100,4 +114,4 @@ find.genomic.events(aCGH.obj, maxChrom = 23, minDiff = 0.25,
   \code{\link{findAmplif.func}}
   \code{\link{findOutliers.func}}
 }
-\keyword{models}% at least one, from doc/KEYWORDS
+\keyword{models}

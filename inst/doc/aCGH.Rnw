@@ -34,12 +34,6 @@
 
 \tableofcontents
 
-%%%{\red TO DO:\\
-%%%*** ADD: a figure explaining the layout terminology.\\
-%%%*** ADD: pictures for classes.\\
-%%%}
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
 

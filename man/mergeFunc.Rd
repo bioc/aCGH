@@ -3,9 +3,9 @@
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Funtion to merge states based on their state means}
 \description{
-  This function takes an output of hmm.run.fun (states.hmm) with a
-  particular model selection criterion andietratively merges the states
-  which means are closer than a supplied threshold.
+  This function takes the output of hmm.run.func (or find.hmm.states)
+  with a particular model selection criterion and iteratively merges the
+  states with means closer than a supplied threshold.
 }
 \usage{
 mergeFunc(statesres = states.bic, minDiff = 0.1)

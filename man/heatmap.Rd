@@ -6,18 +6,19 @@
   Clusters samples and produces heatmapp of the observed log2ratios.
 }
 \usage{
-heatmap(x = aCGH.obj, imp = TRUE, Rowv = NA, Colv = NULL, distfun =
-        dist, hclustfun = hclust, add.expr, symm = FALSE,
-        revC = identical(Colv, "Rowv"), scale = "none", na.rm = TRUE,
-        margins = c(5, 5), ColSideColors, RowSideColors,
-        cexRow = 0.2 + 1/log10(nr), cexCol = 0.2 + 1/log10(nc),
-        labRow = NULL, labCol = NULL, main = NULL, xlab = NULL,
-        ylab = NULL, verbose = getOption("verbose"), methodR = "ward",
+heatmap(x, imp = TRUE, Rowv = NA, Colv = NULL, distfun = dist,
+        hclustfun = hclust, add.expr, symm = FALSE,
+        revC = identical(Colv, "Rowv"), scale = "none",
+        na.rm = TRUE, margins = c(5, 5), ColSideColors,
+        RowSideColors, cexRow = 0.2 + 1 / log10(nr),
+        cexCol = 0.2 + 1 / log10(nc), labRow = NULL,
+        labCol = NULL, main = NULL, xlab = NULL, ylab = NULL,
+        verbose = getOption("verbose"), methodR = "ward",
         methodC = "ward", zlm = c(-0.5, 0.5), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{x}{object of the \code{aCGH} object}
+  \item{x}{object of the \code{\link{aCGH}} object}
   \item{imp}{logical variable indicating whether
     \code{log2.ratios.imputed} or \code{log2.ratios} slot of
     \code{\link{aCGH}} should be used. Defaults to imputed value (TRUE).
