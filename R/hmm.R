@@ -5,7 +5,7 @@
 
 hmm.run.func <-
     function(dat, datainfo = clones.info, vr = .01, maxiter = 100,
-             aic = FALSE, bic = TRUE, delta = NA)
+             aic = TRUE, bic = TRUE, delta = NA)
 {
     chrom.uniq <- unique(datainfo$Chrom)
     states <- matrix(NA, nrow=nrow(dat), ncol=(2+6*ncol(dat)))
@@ -48,17 +48,16 @@ hmm.run.func <-
         }
     }
     
-    
-    
-    
     for (i in 1:ncol(dat))
     {
-###        print(paste("sample is ", i))
+        
+        cat("sample is ", i, "\tChromosomes: ")
         colstart <- 2+(i-1)*6+1
         colend <- 2+i*6
         for (j in 1:length(chrom.uniq))
         {
-###            print(paste("chrom is ", j))
+            
+            cat(j, " ")
             
             res <- try(states.hmm.func(sample=i, chrom=j, dat=dat, datainfo=datainfo,vr=vr, maxiter=maxiter, aic=aic, bic=bic, delta=delta, nlists=nlists))
             
@@ -72,6 +71,7 @@ hmm.run.func <-
             
             
         }
+        cat("\n")
         
     }
     list(states.hmm = states.list, nstates.hmm = nstates.list)
@@ -343,17 +343,12 @@ states.hmm.func <-
         ##cloneinfo <- as.data.frame(cbind(rep(chrom, length(kb.ord)), kb.ord))
         ##dimnames(cloneinfo)[[2]] <- c("Chrom", "kb")
     }
-    list(out.list=out.all.list, nstates.list=nstates.list)
+    list(out.list = out.all.list, nstates.list = nstates.list)
     
 }
 
-
-
 #####################################################################
 #####################################################################
-
-
-
 
 mergeFunc <-
     function(statesres = states.bic, minDiff = .1)
@@ -367,10 +362,9 @@ mergeFunc <-
 
     ##with merging only states and predicted values need to be changed
 
-
-    sq.state <- seq(3, ncol(statesres), b=6)
-    sq.pred <- seq(6, ncol(statesres), b=6)
-    sq.obs <- seq(8, ncol(statesres), b=6)
+    sq.state <- seq(3, ncol(statesres), b = 6)
+    sq.pred <- seq(6, ncol(statesres), b = 6)
+    sq.obs <- seq(8, ncol(statesres), b = 6)
 
     chrom <- statesres[,1]
 
@@ -542,19 +536,19 @@ findOutliers.func <-
 {
     ##"state", "rpred", "prob", "pred", "disp", "obs"
     
-    thres <- thres*factor
+    thres <- thres * factor
     
     chrom <- statesres[,1]
-    sq.state <- seq(3, ncol(statesres), b=6)
-    sq.rpred <- seq(4, ncol(statesres), b=6)
-    sq.prob <- seq(5, ncol(statesres), b=6)
-    sq.pred <- seq(6, ncol(statesres), b=6)
-    sq.obs <- seq(8, ncol(statesres), b=6)
+    sq.state <- seq(3, ncol(statesres), b = 6)
+    sq.rpred <- seq(4, ncol(statesres), b = 6)
+    sq.prob <- seq(5, ncol(statesres), b = 6)
+    sq.pred <- seq(6, ncol(statesres), b = 6)
+    sq.obs <- seq(8, ncol(statesres), b = 6)
 
     ##outputs
     ##1 = outlier	
-    outlier <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
-    states.out <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
+    outlier <- matrix(0, nrow = length(chrom), ncol = length(sq.state))
+    states.out <- matrix(0, nrow = length(chrom), ncol = length(sq.state))
 
     ##predicted values for all (including outliers) with median computed without outliers	
     pred.out <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
@@ -565,15 +559,16 @@ findOutliers.func <-
 ###        print(i)
         for (j in 1:length(unique(chrom)))
         {
-            ind.nonna <- (1:length(statesres[chrom==j, sq.obs[i]]))[!is.na(statesres[chrom==j, sq.obs[i]])]
-            states <- statesres[chrom==j, sq.state[i]][ind.nonna]
-            obs <- statesres[chrom==j, sq.obs[i]][ind.nonna]
-            pred <- statesres[chrom==j, sq.pred[i]][ind.nonna]
+            
+            ind.nonna <- which(!is.na(statesres[chrom==j, sq.obs[i]]))
+            states <- statesres[chrom == j, sq.state[i]][ind.nonna]
+            obs <- statesres[chrom == j, sq.obs[i]][ind.nonna]
+            pred <- statesres[chrom == j, sq.pred[i]][ind.nonna]
             pred.obs <- pred
             ##identify outliers
             for (k in 1:length(obs))
             {
-                md <-  median(obs[states==states[k]],na.rm = TRUE)
+                md <-  median(obs[states == states[k]],na.rm = TRUE)
                 if ((obs[k] >  md + thres[i]) || (obs[k] < md - thres[i]))
                 {
                     outlier[chrom==j, i][ind.nonna][k] <- 1
@@ -596,10 +591,13 @@ findOutliers.func <-
             states.uniq <- unique(states)
             for (m in 1:length(states.uniq))
             {
+                
                 ##predictions for all
-                pred[states==states.uniq[m]] <-  median(obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0])
+                pred[states==states.uniq[m]] <-
+                    median(obs[states == states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0])
                 ##predictions for non-outliers only
-                pred.obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0] <-  median(obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0])
+                pred.obs[states == states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0] <-
+                    median(obs[states==states.uniq[m] & outlier[chrom==j, i][ind.nonna] == 0])
                 
             }
             
@@ -611,17 +609,17 @@ findOutliers.func <-
             pred.obs.out[chrom==j, i][-ind.nonna] <- NA
             pred.out[chrom==j, i][-ind.nonna] <- NA
             
-            
         }
     }
     list(outlier=outlier, pred.obs.out=pred.obs.out, pred.out=pred.out)
+    
 }
 
 #################################
 #################################
 
 findAber.func <-
-    function(maxClones =1, maxLen = 1000, statesres = states.bic)
+    function(maxClones = 1, maxLen = 1000, statesres = states.bic)
 {
     ##either fewer than maxClones or length <= maxLen. 
 
@@ -635,7 +633,9 @@ findAber.func <-
 ###        print(i)
         for (j in 1:length(unique(chrom)))
         {
-            ind.nonna <- (1:length(statesres[chrom==j, sq.obs[i]]))[!is.na(statesres[chrom==j, sq.obs[i]])]
+            
+            st1 <- statesres[chrom==j, sq.obs[i]]
+            ind.nonna <- which(!is.na(st1))
             states <- statesres[chrom==j, sq.state[i]][ind.nonna]
             kbnow <- kb[chrom==j][ind.nonna]
             

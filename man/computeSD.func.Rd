@@ -10,39 +10,40 @@
   as well as to derive thresholds for declaring gained and lost clones.
 }
 \usage{
-computeSD.Samples(aCGH.obj, minDiff = .25, maxChrom = 22,
-                  maxmadUse = .3, maxmedUse = .5, maxState = 3,
-                  minClone = 20, modelUse = 1)
+computeSD.Samples(aCGH.obj, maxChrom = 22, maxmadUse = .3,
+                  maxmedUse = .5, maxState = 3, minClone = 20)
 computeSD.func(statesres = states.bic, maxmadUse = 0.2, maxmedUse = 0.2,
                maxState = 3, maxStateChange = 10, minClone = 20,
                maxChrom = 22)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{aCGH.obj}{Object of class \code{aCGH}}
-  \item{minDiff}{The threshold specifying the minimum distance between
-    medians of different states. The states that have difference of
-    medians smaller than \code{minDiff} are merged. See
-    \code{\link{mergeFunc}}.
+  \item{aCGH.obj}{
+    Object of class \code{\link{aCGH}}.
   }
   \item{statesres}{The states.hmm object, generally is the output of
-    \code{\link{mergeFunc}}.}
+    \code{\link{mergeFunc}}.
+  }
   \item{maxmadUse}{Maximum median absolute deviation allowed to
-    controbute to the overall variability calculation.}
+    controbute to the overall variability calculation.
+  }
   \item{maxmedUse}{Maximum median value for a state allowed to
-    contribute to the calculation.}
+    contribute to the calculation.
+  }
   \item{maxState}{Maximum number of the states on a given chromosome for
     the states from that chromosome to be allowed to enter noise
-    variability calculation.}
+    variability calculation.
+  }
   \item{maxStateChange}{Maximum number of changes from state to state on
     a given chromosome for that chromosome to enter  noise variability
-    calculation.}
+    calculation.
+  }
   \item{minClone}{Minimum number of clones in a state for clones in that
-    sate to enter variability calculation.}
+    sate to enter variability calculation.
+  }
   \item{maxChrom}{Maxiumum chromosomal index (generally only autosomes
-    are used for this calculation.}
-  \item{modelUse}{Indicates the index of the model to use. See
-    \code{\link{find.hmm.states}}}
+    are used for this calculation.
+  }
 }
 \details{
   Median absolute deviation is estimated in all the states passing the

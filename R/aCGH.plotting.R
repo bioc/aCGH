@@ -10,9 +10,9 @@ plotGenome <-
     
     nchr <- naut
     if (X)
-	nchr <- nchr+1
+	nchr <- nchr + 1
     if (Y)
-        nchr <- nchr+1
+        nchr <- nchr + 1
     
     nsamples <- length(samplenames)
     
@@ -25,14 +25,16 @@ plotGenome <-
     ##screening out unampped clones
     ind.unmap <- which(is.na(chrom) | is.na(kb) | (chrom > (naut+2)))
     if (length(ind.unmap) > 0)
-	{
- 	   chrom <- chrom[-ind.unmap]
+    {
+        
+        chrom <- chrom[-ind.unmap]
     	kb <- kb[-ind.unmap]
-    	data <- data[-ind.unmap,]
-	}
+    	data <- data[-ind.unmap ,]
+        
+    }
     
     ##removing chromosome not to plot:
-    data <- data[chrom <= nchr,]
+    data <- data[chrom <= nchr ,]
     kb <- kb[chrom <= nchr]
     chrom <- chrom[chrom <= nchr]
 
@@ -44,12 +46,11 @@ plotGenome <-
 
     par(cex = .6, pch = 18, lab = c(1, 6, 7), cex.axis = 1.5,
         xaxs = "i")
-    for (k in (1:length(samples)))
+    for (k in 1:length(samples))
     {
 
         vec <- data[ ,samples[k] ]
         name <- samplenames[samples[k]]
-
         clone.genomepos <- rep(0, length(kb))
         for (i in 1:nrow(chrominfo))
             clone.genomepos[chrom == i] <-
@@ -57,33 +58,24 @@ plotGenome <-
 
         ##Now, determine vertical scale for each chromosome:
 
-        y.min <- rep(yScale[1], nrow(chrominfo))
-        y.max <- rep(yScale[2], nrow(chrominfo))
-
-        for (i in 1:nrow(chrominfo))
-        {
-
-            if (minna(vec[(chrom==i)]) < y.min[i])
-                y.min[i] <- minna(vec[(chrom==i)])
-            if (maxna(vec[(chrom==i)]) > y.max[i])
-                y.max[i] <- maxna(vec[(chrom==i)])
-
-        }
-
-        ##set genome scale to the min and mx values of the rest of the chromosomes:
-
-        ygenome.min <- minna(y.min)
-        ygenome.max <- maxna(y.max)
+        y.ranges <-
+            sapply(1:nrow(chrominfo),
+                   function(i)
+                   range(vec[chrom == i], yScale, na.rm = TRUE)
+                   )
+        ylim <- range(y.ranges)
+###        y.min <- y.ranges[1 ,]
+###        y.max <- y.ranges[2 ,]
         
 #########################
         
-        plot(clone.genomepos / 1000, vec,
-             ylim = c(ygenome.min, ygenome.max), xlab = "", ylab = "",
+        plot(clone.genomepos / 1000, vec, ylim = ylim, xlab = "",
+             ylab = "",
              xlim =
              c(min(clone.genomepos[clone.genomepos > 0], na.rm = TRUE) /
                1000,
-               clone.genomepos[sum(clone.genomepos>0)] / 1000),
-             col="black")
+               clone.genomepos[sum(clone.genomepos > 0)] / 1000),
+             col = "black")
         
         
         ##title(main=paste(name, " ", sample[k], " - Whole Genome"),
@@ -91,38 +83,42 @@ plotGenome <-
         title(main = paste(samples[k], " ", name), ylab = ylb,
               xlab = "", cex.lab = 1.5, cex.main = 2)
         
-        for (i in seq(1,naut,b=2))
-            mtext(paste("", i), side = 1, at = (chrom.mid[i]/1000),
-                  line=.3, col="red")
-        for (i in seq(2,naut,b=2))
+        for (i in seq(1, naut, b = 2))
+            mtext(paste("", i), side = 1, at = chrom.mid[i] / 1000,
+                  line = .3, col = "red")
+        for (i in seq(2, naut, b = 2))
             mtext(paste("", i), side = 3, at = chrom.mid[i] / 1000,
-                  line=.3, col="red")
+                  line = .3, col = "red")
         
         if (X)
             mtext("X", side = 1, at = chrom.mid[naut + 1] / 1000,
-                  line=.3, col="red")
+                  line = .3, col = "red")
         if (Y)
             mtext("Y", side = 3, at = chrom.mid[naut + 2] / 1000,
-                  line=.3, col="red")
+                  line = .3, col = "red")
         
         abline(v = c(chrom.start / 1000,
                (chrom.start[nrow(chrominfo)] +
                 chrominfo$length[nrow(chrominfo)]) / 1000), lty = 1)
-        ##abline(h=seq(ygenome.min,ygenome.max, b=.2), lty=3)
-        abline(h = seq(-1,1, b=.5), lty = 3)
+        abline(h = seq(-1 , 1, b = .5), lty = 3)
         abline(v = (chrominfo$centromere + chrom.start) / 1000,
                lty = 3, col = "red")
         
     }
+    invisible(list(x = clone.genomepos / 1000,
+                   ylim = range(y.ranges)))
     
 }
 
 ###############################
 
 plotSummaryProfile <-
-    function(aCGH.obj, response = as.factor(rep("All", ncol(aCGH.obj))),
-             titles = unique(response[!is.na(response)]),X = TRUE, Y = FALSE,
-             maxChrom = 23, chrominfo = human.chrom.info.Jul03)
+    function(aCGH.obj,
+             response = as.factor(rep("All", ncol(aCGH.obj))),
+             titles = unique(response[!is.na(response)]), X = TRUE,
+             Y = FALSE, maxChrom = 23,
+             chrominfo = human.chrom.info.Jul03,
+             num.plots.per.page = length(titles))
 {
 
     if (is.null(genomic.events(aCGH.obj)))
@@ -178,15 +174,16 @@ find.genomic.events")
     numchromchange <- numchromgain + numchromloss
     
     boxplot.this <-
-        function(ge, title, sig = 6)
+        function(events, title, sig = 6)
         {
 
             p.value <-
                 if (length(response.uniq) > 1)	
-                    signif(kruskal.test(ge ~ resp.na)$p.value, sig)
+                    signif(kruskal.test(events ~ resp.na)$p.value,
+                           sig)
                 else
                     ""
-            boxplot(ge ~ resp.na, notch = TRUE, names = titles,
+            boxplot(events ~ resp.na, notch = TRUE, names = titles,
                     varwidth = TRUE, main = paste(title, p.value))
             
         }
@@ -216,7 +213,7 @@ find.genomic.events")
         function(matr, i, ylb)
         {
             
-            par(mfrow = c(length(titles), 1))
+            par(mfrow = c(num.plots.per.page, 1))
 
             out <-
                 sapply(1:length(response.uniq),
@@ -262,7 +259,7 @@ find.genomic.events")
 
     ##Plot7: whole chromosomal gain/loss:
 
-    par(mfrow = c(length(titles), 2), lab = c(5,6,7))
+    par(mfrow = c(num.plots.per.page, 2), lab = c(5,6,7))
     
     matr <- ge$whole.chrom.gain.loss[ 1:22, ]
     out.gain <- matrix(NA, nrow = nrow(matr), ncol = length(titles))
@@ -301,12 +298,15 @@ find.genomic.events")
 
 plotHmmStates <-
     function(aCGH.obj, sample.ind, chr = 1:num.chromosomes(aCGH.obj),
-             statesres = hmm(aCGH.obj)$states.hmm[[1]],
-             maxChrom = 23, chrominfo = human.chrom.info.Jul03,
-             yScale = c(-2, 2), samplenames = sample.names(aCGH.obj)
+             statesres = hmm.merged(aCGH.obj), maxChrom = 23,
+             chrominfo = human.chrom.info.Jul03, yScale = c(-2, 2),
+             samplenames = sample.names(aCGH.obj)
              )
 {
 
+    if (is.null(statesres))
+        stop("merge the hmm states first using merge.hmm.states\
+function")
     if (length(sample.ind) > 1)
         stop("plotHmmStates currently prints only 1 sample at a\
 time\n")

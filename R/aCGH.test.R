@@ -1,44 +1,25 @@
-require(survival)
-require(multtest)
 
-aCGH.test.old <-
-    function(formula, aCGH.obj, test = c("t.test", "coxph"),
-             grouping = NULL, p.adjust.method = "fdr", subset = NULL)
+create.resT <-
+    function(resT.raw, p.adjust.method = "fdr")
 {
-
-#    if(missing(formula) || !inherits(formula, "formula"))
-#        stop("formula missing or invalid")
-#        m <- match.call(expand.dots = FALSE)
-#    if(is.matrix(eval(m$data, parent.frame())))
-#        m$data <- as.data.frame(data)
-#    m[[1]] <- as.name("model.frame")
-#    m$... <- NULL
-#    mf <- eval(m, parent.frame())
-#    DNAME <- paste(names(mf), collapse = " by ")
-#    names(mf) <- NULL
-#    response <- attr(attr(mf, "terms"), "response")
-#    g <- factor(mf[[-response]])
-#    if(nlevels(g) != 2)
-#        stop("grouping factor must have exactly 2 levels")
-#    DATA <- split(mf[[response]], g)
-#    browser()
-
-    pheno <- phenotype(aCGH.obj)
-    if (!is.null(subset))
-        pheno <- pheno[ subset, ]
-    test <- match.arg(test)
-    switch(test,
-           t.test = t.test(formula, pheno),
-           coxph = coxph(formula, pheno)
-           )
-#    do.call(test, formula, data = phenotype(aCGH.obj))
-#    invisible()
     
+    rawp <- resT.raw[ 2, ]
+    adjp <- p.adjust(rawp, p.adjust.method)
+    teststat <- resT.raw[ 1, ]
+    
+    data.frame(index = 1:ncol(resT.raw),
+               teststat = teststat,
+               rawp = rawp,
+               adjp = adjp
+               )[ order(adjp, rawp, teststat), ]
+
 }
 
 aCGH.test <-
-    function(frml, aCGH.obj, test = c("survdiff", "coxph"),
-             grouping = NULL, p.adjust.method = "fdr", subset = NULL)
+    function(aCGH.obj, rsp,
+             test = c( "coxph", "survdiff", "linear.regression"),
+###             "logistic.regression"),
+             p.adjust.method = "fdr", subset = NULL, strt = NULL, ...)
 {
 
     l2r <- log2.ratios.imputed(aCGH.obj)
@@ -50,15 +31,18 @@ aCGH.test <-
         sapply(1:nrow(l2r),
                function(i) {
                    
-                   if (i %% 100 == 0)
-                       print(i)
+###                   if (i %% 100 == 0)
+###                       print(i)
                    clone <- l2r[ i, ]
+                   fmla <-
+                       if (!is.null(strt))
+                           rsp ~ clone + strata(strt)
+                       else
+                           rsp ~ clone
                    switch(test,
                           survdiff = {
                               
-                              survdiff.fit <-
-                                  try(survdiff(as.formula(frml),
-                                               data = pheno))
+                              survdiff.fit <- try(survdiff(fmla, ...))
                               if (inherits(survdiff.fit, "try-error"))
                                   c(0, 1)
                               else
@@ -73,17 +57,14 @@ aCGH.test <-
                                           survdiff.fit$exp
                                   c(survdiff.fit$chisq,
                                     1 - pchisq(survdiff$chisq,
-                                               sum(etmp > 0) - 1)
-                                    )
+                                               sum(etmp > 0) - 1))
                                   
                               }
                               
                           },
                           coxph = {
 
-                              coxph.fit <-
-                                  try(coxph(as.formula(frml),
-                                            data = pheno))
+                              coxph.fit <- try(coxph(fmla, ...))
                               if (inherits(coxph.fit, "try-error"))
                                   c(0, 1)
                               else
@@ -98,20 +79,42 @@ aCGH.test <-
                                   
                               }
                               
+                          },
+                          linear.regression = {
+                              
+                              fstat <-
+                                  summary(lm(clone ~ rsp, ...))$fstatistic
+                              c(fstat[1],
+                                1 - pf(fstat[1], fstat[2], fstat[3]))
+                              
                           }
+###                          logistic.regression = {
+
+###                              glm.fit <-
+###                                  try(glm(fmla, family=binomial()))
+###                              if (inherits(glm.fit, "try-error"))
+###                                  c(0, 1)
+###                              else
+###                              {
+                                  
+###                                  stat <-
+###                                      2 * (glm.fit$null.deviance -
+###                                           glm.fit$deviance)
+###                                  c(stat,
+###                                    1 - pchisq(stat,
+###                                               glm.fit$df.null -
+###                                               glm.fit$df.residual))
+
+###                              }
+                              
+###                          }
                           )
                    
                }
                )
-    rawp <- resT[ 2, ]
-    adjp <- p.adjust(rawp, p.adjust.method)
-
-    data.frame(index = 1:ncol(resT),
-               teststat = resT[ 1, ],
-               rawp = rawp,
-               adjp = adjp
-               )[ order(adjp), ]
-
+    
+    create.resT(resT, p.adjust.method)
+    
 }
 
 threshold.func <-
@@ -320,22 +323,19 @@ plotFreqStat <-
              rsp.uniq = unique(pheno),
              all = length(rsp.uniq) == 1 && is.null(resT),
              nlim = 1, titles = if (all) "All Samples" else rsp.uniq,
-             cutplot = 0, thres = .2, ylm = c(-1, 1), ngrid = 2,
+             cutplot = 0, thres = .25, ylm = c(-1, 1), ngrid = 2,
              p.thres = c(.01, .05, .1), mincolors = .1,
              quant.col = .11, numaut = 22, onepage = TRUE,
-             colored = TRUE, summarize.clones = TRUE
+             colored = TRUE
              )
 {
 
-###    if (is.null(resT) && length(rsp.uniq) == FALSE)
-###        stop("Please specify either test statistics or that all\
-### samples are from one group(all = T)\n")
-    
     col.scheme <- 
         if (colored)
             list(pal =
-                 c("red", "blue", "green",
-                   "yellow")[1:length(p.thres)],
+                 c("red", "blue", "green", "yellow")[
+                                                     1:length(p.thres)
+                                                     ],
                  gain.low = "white",
                  gain.high = "green",
                  loss.low = "red",
@@ -349,8 +349,9 @@ plotFreqStat <-
                  )
         else
             list(pal =
-                 c("grey10", "grey40", "grey70",
-                   "grey90")[1:length(p.thres)],
+                 c("grey10", "grey40", "grey70", "grey90")[
+                                                           1:length(p.thres)
+                                                           ],
                  gain.low = "grey50",
                  gain.high = "grey0",
                  loss.low = "grey0",
@@ -364,7 +365,16 @@ plotFreqStat <-
                  )
     data <- log2.ratios(aCGH.obj)
     datainfo <- clones.info(aCGH.obj)
-    dataSign <- log2.ratios.imputed(aCGH.obj)
+    dataSign <-
+        if (is.null(log2.ratios.imputed(aCGH.obj)))
+        {
+            
+            warning("Imputing the log2 ratios")
+            impute.lowess(aCGH.obj)
+            
+        }
+        else
+            log2.ratios.imputed(aCGH.obj)
     rsp.uniq <- sort(rsp.uniq)
     
     ## creating response matrix colmatr
@@ -384,8 +394,7 @@ plotFreqStat <-
                    )
     
     ## screening out clones that are gained or lost in < minChanged in
-    ## classes under comparison
-    ## indeces present:
+    ## classes under comparison indeces present:
 
     tmp <- apply(as.matrix(colmatr), 2, sum)
     indecesnow <- which(tmp == 1)
@@ -400,9 +409,6 @@ plotFreqStat <-
     data.thres <- data.thres[clones.index,]
     dataSign <- dataSign[clones.index,]
     datainfo <- datainfo[clones.index,]
-
-    ## start table:
-    if (summarize.clones)
 
     ## creating color matrix for displaying intensity of gains and losses
     ## and for plotting p-values
@@ -571,10 +577,13 @@ plotFreqStat <-
         ## Process statistics
         ## for plotting test stats and p-values
         
-        res <- resT[clones.index,]
-        maxT <- res$adjp[order(res$index)]
-        
-        teststat <- abs(res$teststat[order(res$index)])
+###        res <- resT[clones.index ,]
+###        maxT <- res$adjp[order(res$index)]
+###        teststat <- abs(res$teststat[order(res$index)])
+        res <- resT[order(resT$index) ,]
+        res <- res[res$index %in% clones.index ,]
+        maxT <- res$adjp
+        teststat <- abs(res$teststat)
         st.now <-
             sapply(p.thres,
                    function(threshold) {
@@ -590,7 +599,8 @@ plotFreqStat <-
              ylim = c(0, max(teststat)), type = "h",
              xlab = "chromosome number", ylab = "clone statistic",
              pch = 18, main = paste(titles, collapse = " vs "),
-             xlim = c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE))
+             xlim =
+             c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE))
              )
         if (length(st.now) > 0)
             abline(h = rev(st.now), col = rev(pal.now), lty = 2)
@@ -619,34 +629,74 @@ plotFreqStat <-
         else
             mtext("Y", side = 1, at = chrom.mid[numaut + 2],
                   line = .3, col = col.scheme$mtext, cex.main = .5)
+    
+}
 
-    ##append to bac summary file
-    if (summarize.clones)
+summarize.clones <-
+    function(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
+             rsp.uniq = unique(pheno), minChanged = 0, thres = .2,
+             all = length(rsp.uniq) == 1 && is.null(resT),
+             p.thres = c(.01, .05, .1))
+{
+
+    data <- log2.ratios(aCGH.obj)
+    datainfo <- clones.info(aCGH.obj)
+    dataSign <- log2.ratios.imputed(aCGH.obj)
+    rsp.uniq <- sort(rsp.uniq)
+
+    colmatr <-
+        if (length(rsp.uniq) > 1)
+            t(
+              sapply(rsp.uniq,
+                     function(rsp.uniq.level)
+                     ifelse(pheno == rsp.uniq.level, 1, 0)
+                     )
+              )
+        else
+            matrix(rep(1, length(pheno)),
+                   ncol = length(pheno),
+                   nrow = 1
+                   )
+
+    tmp <- apply(as.matrix(colmatr), 2, sum)
+    indecesnow <- which(tmp == 1)
+    data.thres <- threshold.func(data, thresAbs = thres)
+    prop.ch <- changeProp.func(dat = data.thres, colMatr = colmatr)
+    maxch <- changeProp.overall.func(dat = data.thres[ ,indecesnow ])
+    clones.index <- which(maxch >= minChanged)
+    data <- data[clones.index,]
+    data.thres <- data.thres[clones.index,]
+    dataSign <- dataSign[clones.index,]
+    datainfo <- datainfo[clones.index,]
+
+    bac.summary <- table.bac.func(dat = data.thres, colMatr = colmatr)
+    if (!all)
     {
         
-        bac.summary <-
-            table.bac.func(dat = data.thres, colMatr = colmatr)
-        if (!all)
-            bac.summary <-
-                cbind(bac.summary, res$rawp[order(res$index)], maxT)
-        bac.summary <- as.data.frame(bac.summary)
-        nms <-
-            c("NumPresent", "NumGain", "NumLost", "PropPresent",
-              "PropGain", "PropLost")
-        cnames <- colnames(bac.summary)
-        cnames[1:6] <- paste(nms, "All", sep = ".")
-        if (nrow(colmatr) > 1)
-            for (m in 1:length(rsp.uniq))
-                cnames[ (6 * m + 1):(6 * (m + 1)) ] <-
-                    paste(nms, rsp.uniq[m], sep = ".")
-        if (!all)
-            cnames[(ncol(bac.summary)-1):ncol(bac.summary)] <-
-                c("rawp", "adjp.maxT")
-        colnames(bac.summary) <- cnames
-        bac.summary <- cbind(datainfo, bac.summary)
-        invisible(bac.summary)
+        ## Process statistics
+        ## for plotting test stats and p-values
         
+        res <- resT[order(resT$index) ,]
+        res <- res[res$index %in% clones.index ,]
+        bac.summary <- cbind(bac.summary, res$rawp, res$adjp)
+
     }
+    bac.summary <- as.data.frame(bac.summary)
+    nms <-
+        c("NumPresent", "NumGain", "NumLost", "PropPresent",
+          "PropGain", "PropLost")
+    cnames <- colnames(bac.summary)
+    cnames[1:6] <- paste(nms, "All", sep = ".")
+    if (nrow(colmatr) > 1)
+        for (m in 1:length(rsp.uniq))
+            cnames[ (6 * m + 1):(6 * (m + 1)) ] <-
+                paste(nms, rsp.uniq[m], sep = ".")
+    if (!all)
+        cnames[(ncol(bac.summary) - 1):ncol(bac.summary)] <-
+            c("rawp", "adjp.maxT")
+    colnames(bac.summary) <- cnames
+    bac.summary <- cbind(datainfo, bac.summary)
+    invisible(bac.summary)
     
 }
 

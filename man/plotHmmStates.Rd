@@ -10,10 +10,10 @@
   each sample.
 }
 \usage{
-plotHmmStates(aCGH.obj, sample.ind, chr = 1:num.chromosomes(aCGH.obj),statesres =
-              hmm(aCGH.obj)$states.hmm[[1]],
-              maxChrom = 23, chrominfo = human.chrom.info.Jul03,
-              yScale = c(-2,2), samplenames = sample.names(aCGH.obj))
+plotHmmStates(aCGH.obj, sample.ind, chr = 1:num.chromosomes(aCGH.obj),
+             statesres = hmm.merged(aCGH.obj), maxChrom = 23,
+             chrominfo = human.chrom.info.Jul03, yScale = c(-2, 2),
+             samplenames = sample.names(aCGH.obj))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

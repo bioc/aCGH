@@ -18,12 +18,14 @@
 }
 \usage{
 hmm.run.func(dat, datainfo = clones.info, vr = 0.01, maxiter = 100,
-             aic = FALSE, bic = TRUE, delta = NA)
+             aic = TRUE, bic = TRUE, delta = NA)
 find.hmm.states(aCGH.obj, ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{aCGH.obj}{object of class aCGH}
+  \item{aCGH.obj}{
+    object of class \code{\link{aCGH}}.
+  }
   \item{dat}{dataframe with clones in the rows and samples in the
     columns}
   \item{datainfo}{dataframe containing the clones information that is

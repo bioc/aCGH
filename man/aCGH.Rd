@@ -26,6 +26,8 @@
 \alias{log2.ratios.imputed<-}
 \alias{hmm}
 \alias{hmm<-}
+\alias{hmm.merged}
+\alias{hmm.merged<-}
 \alias{sd.samples}
 \alias{sd.samples<-}
 \alias{genomic.events}
@@ -43,6 +45,7 @@
 \alias{length.num.func}
 \alias{prop.num.func}
 \alias{subset.hmm}
+\alias{subset.hmm.merged}
 
 \title{Class aCGH}
 \description{Objects of this class represent batch of arrays of
@@ -96,6 +99,11 @@
     The structure of the hmm element is described in
     \code{\link{hmm}}. Calculate this using
     \code{\link{find.hmm.states}} function; look at the examples below
+    (Optional).
+  }
+  \item{hmm}{
+    Similar to the structure of the hmm element. Calculate this using
+    \code{\link{mergeHmmStates}} function; look at the examples below
     (Optional).
   }
   \item{sd.samples}{
@@ -161,13 +169,13 @@
   
 }
 \seealso{
-  \code{\link{aCGH.read.Sprocs}}
-  \code{\link{find.hmm.states}}
-  \code{\link{computeSD.Samples}}
-  \code{\link{find.genomic.events}}
-  \code{\link{plotGenome}}
-  \code{\link{plotHmmStates}}
-  \code{\link{plotFreqStat}}
+  \code{\link{aCGH.read.Sprocs}},
+  \code{\link{find.hmm.states}},
+  \code{\link{computeSD.Samples}},
+  \code{\link{find.genomic.events}},
+  \code{\link{plotGenome}},
+  \code{\link{plotHmmStates}},
+  \code{\link{plotFreqStat}},
   \code{\link{plotSummaryProfile}}
 }
 \examples{
@@ -208,6 +216,8 @@ log2.ratios.imputed(ex.acgh) <- impute.lowess(ex.acgh)
 ## WARNING: Calculating the states takes some time
 
 hmm(ex.acgh) <- find.hmm.states(ex.acgh)
+hmm.merged(ex.acgh) <-
+   mergeHmmStates(ex.acgh, model.use = 1, minDiff = .25)
 
 ## Calculating the standard deviations for each array
 
@@ -220,7 +230,7 @@ genomic.events(ex.acgh) <- find.genomic.events(ex.acgh)
 ## Plotting and printing the hmm states
 
 plotHmmStates(ex.acgh, 1)
-postscript("/tmp/hmm.states.temp.ps")
+pdf("hmm.states.temp.pdf")
 plotHmmStates(ex.acgh, 1)
 dev.off()
 

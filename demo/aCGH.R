@@ -36,7 +36,7 @@ colorectal[1:1000 ,1:3]
 
 order.quality <- order(sd.samples(colorectal)$madGenome)
 par(mfrow = c(2, 1))
-postscript("/tmp/plotGenome.orderByQuality.ps", paper="letter")
+pdf("plotGenome.orderByQuality.pdf")
 for (i in order.quality)
     plotGenome(colorectal, samples = i, Y = FALSE)
 dev.off()

@@ -10,14 +10,15 @@ plotSummaryProfile(aCGH.obj,
                    response = as.factor(rep("All", ncol(aCGH.obj))),
                    titles = unique(response[!is.na(response)]),
                    X = TRUE, Y = FALSE, maxChrom = 23,
-                   chrominfo = human.chrom.info.Jul03)
+                   chrominfo = human.chrom.info.Jul03,
+                   num.plots.per.page = length(titles))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{aCGH.obj}{an object of aCGH class.}
   \item{response}{
-    categorical phenotype to compare. defaults to all the samples being
-    analyzed together.
+    phenotype to compare. defaults to all the samples being analyzed
+    together.
   }
   \item{titles}{
     titles for the groups, defaults to the name of the \code{response}
@@ -32,6 +33,10 @@ plotSummaryProfile(aCGH.obj,
     plotted, from 1 to maxChrom.}
   \item{chrominfo}{
     a chromosomal information associated with the mapping of the data.
+  }
+  \item{num.plots.per.page}{
+    number of frequency plots per page. Default is the number of
+    groups.
   }
 }
 \details{

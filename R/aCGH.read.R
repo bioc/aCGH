@@ -28,38 +28,6 @@ read.Sproc.files <-
            }
            )
 
-##flag.func <-
-##    function(dat, maxsd = .2, minreplic = 2, colvals = 1, colsd = 2,
-##             colrep = 3, colbad = 4)
-##{
-
-##    seq.val <- seq(colvals, ncol(dat), by = 4)
-##    seq.sd <- seq(colsd, ncol(dat), by = 4)
-##    seq.rep <- seq(colrep, ncol(dat), by = 4)
-##    seq.bad <- seq(colbad, ncol(dat), by = 4)
-
-##    log2rat <- as.matrix(dat[ ,seq.val ])
-##    log2stddev <- as.matrix(dat[ ,seq.sd ])
-##    nreplic <- dat[ ,seq.rep ]
-##    flag <- dat[ ,seq.bad ]
-
-##    for (i in 1:ncol(flag))
-##    {
-        
-#####        tmp <- flag[,i]
-#####        tmp[((log2stddev[,i] > maxsd) | (nreplic[,i] < minreplic))] <- 1
-#####        flag[ ,i ] <- tmp
-#####        log2rat[tmp == 1, i] <- NA
-##        tmp1 <- flag[,i] == 1 & ((log2stddev[,i] > maxsd) | (nreplic[,i] < minreplic))
-##        log2rat[tmp1, i] <- NA
-#####        log2stddev[tmp == 1, i] <- NA
-        
-##    }
-    
-##    log2rat
-    
-##}
-
 extract.clones.info <-
     function(dt.tmp)
 {
@@ -85,27 +53,7 @@ aCGH.read.Sprocs <-
 
     mincorr.func <-
         function(A)
-        {
-            
-            crmn <- 2
-            for (i in 1:(ncol(A) - 1))
-                for (j in (i+1):ncol(A))
-                {
-                    
-                    vec1 <- A[ ,i ]
-                    vec2 <- A[ ,j ]
-                    ind <- which(!is.na(vec1) & !is.na(vec2))
-                    vec1 <- rank(vec1[ind])
-                    vec2 <- rank(vec2[ind])
-                    cr <- cor(vec1, vec2)
-                    if (cr < crmn)
-                        crmn <- cr
-                    
-                }
-            
-            crmn
-            
-        }
+            min(cor(A, use = "pair", method = "spearman"))
 
 ###    if (is.null(sample.names))
 ###        sample.names <- 

@@ -1,7 +1,5 @@
 \name{plotFreqStat}
 \alias{plotFreqStat}
-\alias{aCGH.test.old}
-\alias{aCGH.test}
 \alias{threshold.func}
 \alias{changeProp.func}
 \alias{changeProp.overall.func}
@@ -12,6 +10,7 @@
 \alias{propLoss.na}
 \alias{prop.na}
 \alias{gainloss.func}
+\alias{create.resT}
 \alias{plotFreqStatColors}
 \alias{plotFreqStatGrey}
 \alias{plotFreqGivenStat}
@@ -33,10 +32,10 @@ plotFreqStat(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
              rsp.uniq = unique(pheno),
              all = length(rsp.uniq) == 1 && is.null(resT),
              nlim = 1, titles = if (all) "All Samples" else rsp.uniq,
-             cutplot = 0, thres = .2, ylm = c(-1, 1), ngrid = 2,
+             cutplot = 0, thres = .25, ylm = c(-1, 1), ngrid = 2,
              p.thres = c(.01, .05, .1), mincolors = .1,
              quant.col = .11, numaut = 22, onepage = TRUE,
-             colored = TRUE, summarize.clones = TRUE)
+             colored = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -107,7 +106,6 @@ plotFreqStat(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
     different pages.
   }
   \item{colored}{Is plotting in color or not? Default is T.}
-  \item{summarize.clones}{Return frequency summaries for individual clones.}
 }
 % \details{
 %   ~~ If necessary, more details than the __description__  above ~~

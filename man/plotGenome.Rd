@@ -42,7 +42,7 @@ plotGenome(aCGH.obj, samples = 1:num.samples(aCGH.obj), naut = 22,
 #plot samples in the order of descending quality 
 data(colorectal)
 order.quality <- order(sd.samples(colorectal)$madGenome)
-postscript("plotGenome.orderByQuality.ps", paper="letter")
+pdf("plotGenome.orderByQuality.pdf")
 par(mfrow=c(2,1))
 for(i in order.quality)
    plotGenome(colorectal, samples = i, Y = FALSE)

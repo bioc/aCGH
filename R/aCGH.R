@@ -1,5 +1,3 @@
-require(cluster)
-require(repeated)
 
 create.aCGH <-
     function(log2.ratios, clones.info, phenotype = NULL)
@@ -8,7 +6,7 @@ create.aCGH <-
     if (nrow(log2.ratios) != nrow(clones.info))
         stop("Number of rows of log2.ratios and clones.info differ!")
     if (!is.null(phenotype) && ncol(log2.ratios) != nrow(phenotype))
-        stop("Number of clumns of log2.ratios and number of rows in\
+        stop("Number of columns of log2.ratios and number of rows in\
 phenotype differ!")
     if (!all(rownames(log2.ratios) == clones.info$Clone))
         rownames(log2.ratios) <- clones.info$Clone
@@ -99,8 +97,8 @@ impute.lowess <-
 
     data.imp <- log2.ratios <- log2.ratios(aCGH.obj)
     clones.info <- clones.info(aCGH.obj)
-    maxChrom <- min(max(unique(clones.info$Chrom)), maxChrom)
-    for (j in 1:maxChrom)
+    uniq.chrom <- unique(clones.info$Chrom)
+    for (j in uniq.chrom[uniq.chrom <= maxChrom])
     {
         
         cat("Processing chromosome ", j, "\n")
@@ -144,7 +142,7 @@ impute.lowess <-
     }
 
 #################
-###now, if any missing value are left 
+###now, if any missing values are left 
     
     prop.miss <- apply(data.imp, 2, prop.na)
     ## if any samples contain missing values
@@ -217,8 +215,7 @@ log2.ratios.imputed <-
 
 find.hmm.states <-
     function(aCGH.obj, ...)
-    hmm.run.func(aCGH.obj$log2.ratios,
-                 aCGH.obj$clones.info, ...)
+    hmm.run.func(aCGH.obj$log2.ratios, aCGH.obj$clones.info, ...)
 
 hmm <- function(aCGH.obj) aCGH.obj$hmm
 "hmm<-" <-
@@ -233,23 +230,19 @@ hmm <- function(aCGH.obj) aCGH.obj$hmm
         nstates.ok <-
             length(value$nstates.hmm) ==
                 length(aCGH.obj$hmm$nstates.hmm) &&
-        all(
-            sapply(1:length(aCGH.obj$hmm$nstates.hmm),
+        all(sapply(1:length(aCGH.obj$hmm$nstates.hmm),
                    function(i)
                    all(dim(aCGH.obj$hmm$nstates.hmm[[i]]) ==
                        dim(value$nstates.hmm[[i]]))
-                   )
-            )
+                   ))
         states.ok <-
             length(value$states.hmm) ==
                 length(aCGH.obj$hmm$states.hmm) &&
-        all(
-            sapply(1:length(aCGH.obj$hmm$states.hmm),
+        all(sapply(1:length(aCGH.obj$hmm$states.hmm),
                    function(i)
                    all(dim(aCGH.obj$hmm$states.hmm[[i]]) ==
                        dim(value$states.hmm[[i]]))
-                   )
-            )
+                   ))
         if (!nstates.ok || !states.ok)
             stop("invalid replacement dimensions")
         
@@ -259,28 +252,47 @@ hmm <- function(aCGH.obj) aCGH.obj$hmm
 
 }
 
-computeSD.Samples <-
-    function(aCGH.obj, minDiff = .25, maxChrom = 22, maxmadUse = .3,
-             maxmedUse = .5, maxState = 3, minClone = 20, modelUse=1)
+mergeHmmStates <-
+    function(aCGH.obj, model.use = 1, minDiff = .25)
 {
 
     if (is.null(hmm(aCGH.obj)))
-        stop("compute the hmm states first using find.hmm.states\
+	stop("compute the hmm states first using find.hmm.states\
 function")
+
     hmm <- hmm(aCGH.obj)
-    hmm.res.merge <-
-        mergeFunc(statesres = hmm$states.hmm[[modelUse]],
-                  minDiff = minDiff)
+    mergeFunc(statesres = hmm$states.hmm[[model.use]],
+              minDiff = minDiff)$states.hmm
 
-    ##extracting statesMatrix
+}
 
-    states.bic <- hmm.res.merge$states.hmm
+hmm.merged <- function(aCGH.obj) aCGH.obj$hmm.merged
+"hmm.merged<-" <-
+    function(aCGH.obj, value)
+{
+
+    if (!is.aCGH(aCGH.obj))
+	stop("object is not of class aCGH")
+    aCGH.obj$hmm.merged <- value
+    aCGH.obj
+
+}
+
+computeSD.Samples <-
+    function(aCGH.obj, maxChrom = 22, maxmadUse = .3, maxmedUse = .5,
+             maxState = 3, minClone = 20)
+{
+
+    if (is.null(hmm.merged(aCGH.obj)))
+        stop("merge the hmm states first using merge.hmm.states\
+function")
 
     ##computing SD of the tumor and sd on individual chromosomes
 
-    computeSD.func(statesres = states.bic, maxmadUse = maxmadUse,
-                   maxmedUse = maxmedUse, maxState = maxState,
-                   minClone = minClone, maxChrom = maxChrom)
+    computeSD.func(statesres = hmm.merged(aCGH.obj),
+                   maxmadUse = maxmadUse, maxmedUse = maxmedUse,
+                   maxState = maxState, minClone = minClone,
+                   maxChrom = maxChrom)
     
 }
 
@@ -312,31 +324,24 @@ sd.samples <- function(aCGH.obj) aCGH.obj$sd.samples
 }
 
 find.genomic.events <-
-    function(aCGH.obj, maxChrom = 23, minDiff = .25, modelUse = 1,
-             factor = 5, maxClones = 1, maxLen = 1000,
-             absValSingle = 1, absValRegion = 1, diffVal1 = 1,
-             diffVal2 = .5, maxSize = 10000, pChrom.min = .9,
-             medChrom.min = .1, merge = TRUE)
+    function(aCGH.obj, maxChrom = 23, factor = 5, maxClones = 1,
+             maxLen = 1000, absValSingle = 1, absValRegion = 1,
+             diffVal1 = 1, diffVal2 = .5, maxSize = 10000,
+             pChrom.min = .9, medChrom.min = .1)
 {
 
-    if (is.null(hmm(aCGH.obj)))
-        stop("compute the hmm states first using find.hmm.states\
+    if (is.null(hmm.merged(aCGH.obj)))
+        stop("merge the hmm states first using merge.hmm.states\
 function")
     if (is.null(sd.samples(aCGH.obj)))
-        stop("compute the std. dev. of aCGH using computeSD.Samples\
-function")
-    data <- log2.ratios(aCGH.obj)
+        stop("compute the std. deviations of aCGH samples using\
+computeSD.Samples function")
+    l2r <- log2.ratios(aCGH.obj)
     clones.info <- clones.info(aCGH.obj)
-    hmm <- hmm(aCGH.obj)
     sd.samples <- sd.samples(aCGH.obj)
-###    ind.samples <- (1:ncol(data))
-    ncols <- ncol(data)
-
-    if (merge == TRUE)
-        hmm.res.merge <-
-            mergeFunc(statesres = hmm$states.hmm[[modelUse]],
-                      minDiff = minDiff)
-    statesMatrix <- hmm.res.merge$states.hmm
+    ncols <- ncol(l2r)
+    statesMatrix <- hmm.merged(aCGH.obj)
+    
     ##identifies outliers (factor times SD from the the median of the state)
     cat("Finding outliers\n")
     outliers <-
@@ -416,16 +421,16 @@ function")
             {
 
                 ##observed values
-                obs <- data[ind, i]
+                obs <- l2r[ind, i]
                 ##exclude aberrations and outliers
                 obs <- obs[aber[ ,i ] == 0 & outlier[ ,i ] == 0]
                 ##exclude missing values
-                obs <- obs[!is.na(obs)]
-                p <- 
+                obs <- na.omit(obs)
+                p <-
                     if (median(obs) >= 0)
-                        length(obs[obs>0])/length(obs)
+                        mean(obs >= 0)
                     else
-                        length(obs[obs<0])/length(obs)
+                        mean(obs < 0)
                 propClones[j, i] <- p
                 pv <-
                     1 - pnorm((p - .5) / sqrt((.5 ^ 2) / length(obs)))
@@ -446,13 +451,13 @@ function")
                     wholeChromGainLoss[j, i] <- 0
                 
             }
-            numAmplif[j,i] <- sum(amplif[ ,i ] == 1, na.rm=TRUE)
+            numAmplif[j,i] <- sum(amplif[ ,i ] == 1, na.rm = TRUE)
             if (numAmplif[j,i] > 0)
                 numAmplif.binary[j,i] <- 1
-            numAber[j,i] <- sum(aber[ ,i ] == 1, na.rm=TRUE)
+            numAber[j,i] <- sum(aber[ ,i ] == 1, na.rm = TRUE)
             if (numAber[j,i] > 0)
                 numAber.binary[j,i] <- 1
-            numOutlier[j,i] <- sum(outlier[ ,i ] == 1, na.rm=TRUE)
+            numOutlier[j,i] <- sum(outlier[ ,i ] == 1, na.rm = TRUE)
             if (numOutlier[j,i] > 0)
                 numOutlier.binary[j,i] <- 1
 	    amp <- amplif[,i]
@@ -548,7 +553,9 @@ phenotypes")
 subset.hmm <-
     function(x, ...)
 {
-    
+
+    if (is.null(x))
+        return(NULL)
     ll <- list(...)
     i <- 
         if (is.null(ll$i))
@@ -566,33 +573,67 @@ subset.hmm <-
         else
             ll$chroms
     with(x,
-         list(nstates.hmm =
-              lapply(nstates.hmm,
-                     function(nstates) nstates[chroms ,j]
-                     ),
-              states.hmm =
-              lapply(states.hmm,
-                     function(states)
-                     states[i,
-                            c(1:2,
-                              as.vector(
-                                        sapply(j,
-                                               function(k)
-                                               (3 + (k - 1) * 6):(2 + k * 6)
-                                               )
-                                        )
-                              )
-                            ]
-                     )
+         list(hmm =
+              list(nstates.hmm =
+                   lapply(nstates.hmm,
+                          function(nstates) nstates[chroms ,j]
+                          ),
+                   states.hmm =
+                   lapply(states.hmm,
+                          function(states)
+                          states[i,
+                                 c(1:2,
+                                   as.vector(
+                                             sapply(j,
+                                                    function(k)
+                                                    (3 + (k - 1) * 6):(2 + k * 6)
+                                                    )
+                                             )
+                                   )
+                                 ]
+                          )
+                   ),
               )
          )
 
 }
 
+subset.hmm.merged <-
+    function(x, ...)
+{
+
+    if (is.null(x))
+        return(NULL)
+
+    ll <- list(...)
+    i <- 
+        if (is.null(ll$i))
+            1:nrow(x$states.hmm[[1]])
+        else
+            ll$i
+    j <- 
+        if (is.null(ll$j))
+            1:ncol(x$nstates.hmm[[1]])
+        else
+            ll$j
+    
+    x[i,
+      c(1:2,
+        as.vector(
+                  sapply(j,
+                         function(k)
+                         (3 + (k - 1) * 6):(2 + k * 6)
+                         )
+                  )
+        )
+      ]
+    
+}
+
 "[.aCGH" <-
     function(aCGH.obj, i, j, keep = FALSE)
 {
-
+    
     drop.i <- missing(i)
     drop.j <- missing(j)
     if (drop.i && drop.j)
@@ -636,12 +677,14 @@ subset.hmm <-
                             else
                             lapply(el, function(el1) el1[i, j])
                             ),
-                     hmm = if (is.null(hmm(aCGH.obj))) NULL
-                     else
+                     hmm =
                      subset.hmm(hmm(aCGH.obj), i = i, j = j,
                                 chroms =
                                 which(table(clones.info(aCGH.obj)$Chrom[i]) > 0)
                                 ),
+                     hmm.merged =
+                     subset.hmm.merged(hmm.merged(aCGH.obj), i = i,
+                                       j = j),
                      phenotype =
                      if (is.null(aCGH.obj$phenotype)) NULL
                      else aCGH.obj$phenotype[j, , drop = FALSE]
@@ -721,13 +764,22 @@ plot.aCGH <-
 {
 
     ll <- list(...)
-    if (!is.null(ll$imp) && ll$imp)
-        dat <- as.matrix(log2.ratios.imputed(x))
-    else
-        dat <- as.matrix(log2.ratios(x))
-    heatmap(dat, Rowv = NA, main = "Heatmap",
-            labCol = sample.names(x))
-
+    dat <- 
+        if (!is.null(ll$imp) && ll$imp)
+            as.matrix(log2.ratios.imputed(x))
+        else
+            as.matrix(log2.ratios(x))
+    Colv <- 
+        if (!is.null(ll$Colv) && ll$Colv)
+            ll$Colv
+        else
+            NULL
+###    heatmap(dat, Rowv = NA, Colv = Colv, main = "Heatmap",
+###            labCol = sample.names(x))
+###    if (!is.null(genomic.events(x)))
+###        plotSummaryProfile(x)
+    plotFreqStat(x)
+    
 }
 
 minna <-

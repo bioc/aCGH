@@ -44,9 +44,10 @@ This document presents an overview of the {\tt aCGH} package, which provides wid
 The data used in the example was generated in in lab of Dr. Fred Waldman at UCSF Comprehensive Cancer Center (\cite{Nakaoetal04}).Array CGH has been done on 125 colorectal fresh-frozen primary tumors and the associations with various phenotypes were analyzed. To reduce running time, only 40 samples are used in the 
 examples.
 
-This is where the examples start:
+\section{Examples}
 
-1. Creating aCGH object from log2.ratios and clone info files. 
+\subsection{Creating aCGH object from log2.ratios and clone info
+files}
 
 Each array CGH object has to contain the log2ratios reperesenting
 relative copy number along with the mapping information including but
@@ -81,8 +82,8 @@ ex.acgh <- create.aCGH(log2.ratios, clones.info, pheno.type)
 %%                 header = T, sep = "\t")
 %%create.aCGH(log2.ratios, clones.info, pheno.type)
 
-2. Printing, summary and basic plotting (fig.1) for objects of class
-aCGH.
+\subsection{Printing, summary and basic plotting
+(fig. \ref{cap:Plot-clustered-samples}) for objects of class aCGH}
 
 <<echo=TRUE,print=FALSE>>=
 data(colorectal)
@@ -90,13 +91,14 @@ colorectal
 summary(colorectal)
 @
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plot(colorectal)
 @
 \end{center}
-\caption{Heatmap of the clustered samples}
+\caption{Basic plot of the clustered samples}
+\label{cap:Plot-clustered-samples}
 \end{figure}
 
 <<echo=TRUE,print=FALSE>>=
@@ -104,57 +106,65 @@ sample.names(colorectal)
 phenotype(colorectal)[1:4,]
 @
 
-3. Reading Sproc files
+\subsection{Reading Sproc files}
 
-Here we demonstrate reading of the sproc files and combining them into one 
-array CGH object. Sproc file format is specific to the custom SPROC
-processing software at UCSF Cancer Center.
+Here we demonstrate reading of the sproc files and combining them into
+one array CGH object. Sproc file format is specific to the custom
+SPROC processing software at UCSF Cancer Center.
 
 <<echo=TRUE,print=FALSE>>=
 datadir <- system.file("examples", package = "aCGH")
-latest.mapping.file <- file.path(datadir, "human.clones.info.Jul03.csv")
+latest.mapping.file <-
+	file.path(datadir, "human.clones.info.Jul03.csv")
 ex.acgh <-
-    aCGH.read.Sprocs(system(paste("ls -1", file.path(datadir,
-                    "*.txt")), intern = T), latest.mapping.file,
-                    chrom.remove.threshold = 23)
+	aCGH.read.Sprocs(dir(path = datadir,
+			pattern = paste("*", "txt", sep = "\."),
+			full.names = TRUE), latest.mapping.file,
+			chrom.remove.threshold = 23)
 ex.acgh
 @
 
-4. Basic heatmap plot for batch of aCGH Sproc files. (fig.2)
+\subsection{Basic plot for batch of aCGH Sproc
+files. (fig. \ref{cap:Basic-plot})}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plot(ex.acgh)
 @
 \end{center}
-\caption{Basic heatmap plot for batch of aCGH Sproc files}
+\caption{Basic plot for batch of aCGH Sproc files}
+\label{cap:Basic-plot}
 \end{figure}
 
-5. Subsetting example
+\subsection{Subsetting example}
 
 <<echo=TRUE,print=FALSE>>=
 cr <- colorectal[ ,1:3]
 @
 
-6. Basic plot for the ordered log2 ratios along the genome
+\subsection{Basic plot for the ordered log2 ratios along the genome}
 
 The relative copy number is plotted along the genome with clones
-placed in the genomic order (fig. 3). Chromosome Y is excluded.
+placed in the genomic order
+(fig. \ref{cap:Basic-plot-ordered-log2-ratios}). Chromosome Y is
+excluded.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plotGenome(ex.acgh, Y = FALSE)
 @
 \end{center}
 \caption{Basic plot for the ordered log2 ratios along the genome}
+\label{cap:Basic-plot-ordered-log2-ratios}
 \end{figure}
 
-7. Plotting hmm states.
+\subsection{Plotting hmm states}
 
 For a given sample, each chromosome is plotted on a separate page
-along with its smoothed values(figs. 4). The genomic events
+along with its smoothed
+values(fig. \ref{cap:Plotting-hmm-states}). The genomic events
 such as transitions, focal aberrations and amplifications are
 indicated. The outliers are also marked.
 
@@ -162,6 +172,11 @@ indicated. The outliers are also marked.
 ## Determining hmm states of the clones
 
 hmm(ex.acgh) <- find.hmm.states(ex.acgh)
+
+## Merging hmm states
+
+hmm.merged(ex.acgh) <-
+   mergeHmmStates(ex.acgh, model.use = 1, minDiff = .25)
 
 ## Calculating the standard deviations for each array. Standard error is 
 ##calculated for each region and then averaged across regions.
@@ -179,29 +194,58 @@ genomic.events(ex.acgh) <- find.genomic.events(ex.acgh)
 ##postscript("hmm.states.temp.ps");plotHmmStates(ex.acgh, sample.ind=1);dev.off()
 @
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
-plotHmmStates(ex.acgh, sample.ind = 1)
+plotHmmStates(colorectal, sample.ind = 1, chr = 1)
 @
 \end{center}
-\caption{Plotting the hmm states found for ex.acgh object}
+\caption{Plotting the hmm states found for colorectal data set.}
+\label{cap:Plotting-hmm-states}
 \end{figure}
 
-8. Plotting summary of the tumor profiles(fig. 5). Here the distribution of
-various genomic events as well as their freqeuncy by location is displayed.
+\subsection{Plotting summary of the tumor
+profiles(fig. \ref{cap:Plotting-summary-tumor-profiles})}
+Here the distribution of various genomic events as well as their
+frequency by location is displayed.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plotSummaryProfile(colorectal)	
 @
 \end{center}
 \caption{Plotting summary of the tumor profiles}
+\label{cap:Plotting-summary-tumor-profiles}
 \end{figure}
 
-9. Testing association of clones with sex, followed by
-plotting the p.values. Use mt.maxT function from multtest package to
+\subsection{Overall frequency plot
+(fig. \ref{cap:Overall-frequency-plot})}
+
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotFreqStat(colorectal, all = T)
+@
+\end{center}
+\caption{Overall frequency plot of the tumor profiles}
+\label{cap:Overall-frequency-plot}
+\end{figure}
+
+summarize.clones() function is the text equivalent of plotFreqStat() -
+it summarizes the frequencies of changes for each clone accross
+tumors.
+
+<<echo=TRUE,print=FALSE>>=
+summarize.clones(colorectal)[1:10 ,]
+@
+
+%TkWidgets - later!!!
+
+\subsection{Testing association of clones with categorical, censored
+or continuous outcomes.}
+
+Use mt.maxT function from multtest package to
 test differences in group means for each clone grouped by sex. Plot
 the result along the genome displaying the frequencies of gains and losses
 as well well as height of the statistic correponsding to each
@@ -209,8 +253,6 @@ clone(figs. 6 and 7.). The p-value can be adjusted and the horizontal
 lines indicate chosen level of significance.
 
 <<echo=TRUE,print=FALSE>>=
-library(multtest)
-
 colnames(phenotype(colorectal))
 sex <- phenotype(colorectal)$sex
 sex.na <- !is.na(sex)
@@ -218,7 +260,8 @@ colorectal.na <- colorectal[ ,sex.na ]
 dat <- log2.ratios.imputed(colorectal.na)
 resT.sex <- mt.maxT(dat, sex[sex.na], test = "t", B = 1000)
 @
-\begin{figure}[h]
+
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plotFreqStat(colorectal.na, resT.sex, sex[sex.na], titles =
@@ -228,7 +271,7 @@ plotFreqStat(colorectal.na, resT.sex, sex[sex.na], titles =
 \caption{Frequency plots of the samples with respect to the sex groups}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plotSummaryProfile(colorectal, response = sex,
@@ -239,39 +282,63 @@ plotSummaryProfile(colorectal, response = sex,
 \caption{Plotting summary of the tumor profiles}
 \end{figure}
 
-10. Derive statistics and p-values for testing the linear association
-of age with the log2 ratios of each clone along the tumors
+Testing association of clones with censored outcomes.
+
+<<echo=TRUE,print=FALSE>>=
+time <- rexp(ncol(colorectal), rate = 1 / 12)
+events <- rbinom(ncol(colorectal), size = 1, prob = .5)
+surv.obj <- Surv(time, 	events)
+surv.obj
+stat.coxph <-
+  aCGH.test(colorectal, surv.obj, test = "coxph",
+	p.adjust.method = "fdr")
+stat.coxph[1:20 ,]
+@
+
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotFreqStat(colorectal, stat.coxph, events, titles =
+             c("Survived/Censored", "Dead"), X = FALSE, Y = FALSE)
+@
+\end{center}
+\caption{Frequency plots of the samples with respect to survival.}
+\end{figure}
+
+Deriving statistics and p-values for testing the linear association
+of age with the log2 ratios of each clone along the tumors.
 
 <<echo=TRUE,print=FALSE>>=
 age <- phenotype(colorectal)$age
-age.na <- !is.na(age)
-colorectal.na <- colorectal[ ,age.na ]
-dat <- log2.ratios.imputed(colorectal.na)
-stat.age <- sapply(1:nrow(dat),
-                   function(i) {
-                      if (i %% 100 == 0)
-                         cat(i, "\n")
-                      lm.fit <-
-                          summary(lm(dat[i,] ~ age[age.na]))
-                      c(lm.fit$fstatistic[1],
-                        1 - pf(lm.fit$fstatistic[1],
-                               lm.fit$fstatistic[2],
-                               lm.fit$fstatistic[3])
-                       )
-                   }
-                   )
+age.na <- which(!is.na(age))
+age <- age[age.na]
+colorectal.na <- colorectal[, age.na]
+stat.age <-
+  aCGH.test(colorectal.na, age, test = "linear.regression",
+            p.adjust.method = "fdr")
+stat.age[1:20 ,]
 @
 
-11. Here we create a resT object using the values derived above.
-
-<<echo=TRUE,print=FALSE>>=
-resT.age <- data.frame(index = 1:ncol(stat.age),
-                       teststat = stat.age[1,],
-                       rawp = stat.age[2,],
-                       adjp = p.adjust(stat.age[2,], "fdr"))
-resT.age <- resT.age[order(resT.age$adjp),]
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE,echo=TRUE>>=
+plotFreqStat(colorectal.na, stat.age, ifelse(age < 70, 0, 1), titles =
+             c("Young", "Old"), X = FALSE, Y = FALSE)
 @
-%%%\begin{figure}[h]
+\end{center}
+\caption{Frequency plots of the samples with respect to age.}
+\end{figure}
+
+Here we create a resT object using the values derived above.
+
+%<<echo=TRUE,print=FALSE>>=
+%resT.age <- data.frame(index = 1:ncol(stat.age),
+%                       teststat = stat.age[1,],
+%                       rawp = stat.age[2,],
+%                       adjp = p.adjust(stat.age[2,], "fdr"))
+%resT.age <- resT.age[order(resT.age$adjp),]
+%@
+%%%\begin{figure}[ht]
 %%%  \begin{center}
 %%%<<fig=TRUE,echo=TRUE>>=
 %%%plotFreqStat(colorectal.na, resT.age, age[age.na])
@@ -280,11 +347,13 @@ resT.age <- resT.age[order(resT.age$adjp),]
 %%%  \end{center}
 %%%\end{figure}
 
+\subsection{Clustering samples}
 
-12. Here we cluster samples within each phenotype using chromosomes 4,
-8 and 9 and display the phenotype labels, in this case, sex (fig. 8).
+Here we cluster samples within each phenotype using chromosomes 4,
+8 and 9 and display the phenotype labels, in this case, sex
+(fig. \ref{cap:Clustering-samples-sex}).
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 <<fig=TRUE,echo=TRUE>>=
 plotvalGenome.func(colorectal, response = phenotype(colorectal)$sex,
@@ -294,6 +363,7 @@ plotvalGenome.func(colorectal, response = phenotype(colorectal)$sex,
 @
 \end{center}
 \caption{Clustering of the samples by sex}
+\label{cap:Clustering-samples-sex}
 \end{figure}
 
 %%\SweaveOpts{echo=true}
