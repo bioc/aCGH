@@ -10,7 +10,7 @@ opar <-
 
 datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
-      file.path(datadir, "human.clones.info.Jul03.csv")
+      file.path(datadir, "human.clones.info.Jul03.txt")
 ex.acgh <-
     aCGH.read.Sprocs(dir(path = datadir,
                      pattern = paste("*", "txt", sep = "\."),
@@ -44,7 +44,7 @@ dev.off()
 #cluster all samples using imputed data on all chromosomes (autosomes
 ## and X):
 
-plotvalGenome.func(colorectal, dendPlot = FALSE)
+clusterGenome(colorectal, dendPlot = FALSE)
 
 ## Plotting the hmm states
 plotHmmStates(colorectal, 1)

@@ -1,7 +1,7 @@
 \name{heatmap}
 \alias{heatmap}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{Default method for plotting array CGH objects}
+\title{Creates heatmap array CGH objects}
 \description{
   Clusters samples and produces heatmapp of the observed log2ratios.
 }
@@ -94,7 +94,7 @@ heatmap(x, imp = TRUE, Rowv = NA, Colv = NULL, distfun = dist,
 \references{heatmap function in base R}
 \seealso{
   \code{\link{aCGH}}
-  \code{\link{plotvalGenome.func}}
+  \code{\link{clusterGenome}}
 }
 \examples{
 

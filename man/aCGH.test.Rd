@@ -1,5 +1,7 @@
 \name{aCGH.test}
 \alias{aCGH.test}
+\alias{mt.maxT}
+\alias{mt.minP}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Testing association of aCGH clones with censored or continuous
   outcomes}
@@ -12,7 +14,7 @@
   the \eqn{G^\rho} family of tests.
 }
 \usage{
-aCGH.test(aCGH.obj, rsp, test = c("coxph", "survdiff",
+aCGH.test(aCGH.obj, rsp, test = c("survdiff","coxph",
           "linear.regression"), p.adjust.method = "fdr",
            subset = NULL, strt = NULL, ...)
 }

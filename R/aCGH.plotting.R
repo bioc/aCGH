@@ -75,9 +75,10 @@ plotGenome <-
              c(min(clone.genomepos[clone.genomepos > 0], na.rm = TRUE) /
                1000,
                clone.genomepos[sum(clone.genomepos > 0)] / 1000),
-             col = "black")
+             col = "black", xaxt="n")
         
-        
+        axis(side=1, at=clone.genomepos[1]/ 1000, label="", tick=FALSE)
+
         ##title(main=paste(name, " ", sample[k], " - Whole Genome"),
         ##ylab=ylb, xlab="Chromosome", cex.lab=1.5,cex.main=2)
         title(main = paste(samples[k], " ", name), ylab = ylb,

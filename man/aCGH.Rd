@@ -183,16 +183,18 @@
 ## Creating aCGH object from log2.ratios and clone info files
 ## For alternative way look at aCGH.read.Sprocs help
 
-datadir <- system.file("data", package = "aCGH")
+datadir <- system.file(package = "aCGH")
+datadir <- paste(datadir, "/examples", sep="")
+
 clones.info <-
-      read.table(file = file.path(datadir, "clones.info.ex.csv"),
-                 header = TRUE, sep = "\t")
+      read.table(file = file.path(datadir, "clones.info.ex.txt"),
+                 header = TRUE, sep = "\t", quote="", comment.char="")
 log2.ratios <-
-      read.table(file = file.path(datadir, "log2.ratios.ex.csv"),
-                 header = TRUE, sep = "\t")
+      read.table(file = file.path(datadir, "log2.ratios.ex.txt"),
+                 header = TRUE, sep = "\t", quote="", comment.char="")
 pheno.type <-
-      read.table(file = file.path(datadir, "pheno.type.ex.csv"),
-                 header = TRUE, sep = "\t")
+      read.table(file = file.path(datadir, "pheno.type.ex.txt"),
+                 header = TRUE, sep = "\t", quote="", comment.char="")
 ex.acgh <- create.aCGH(log2.ratios, clones.info, pheno.type)
 
 ## Printing, summary and basic plotting for objects of class aCGH
@@ -215,7 +217,11 @@ log2.ratios.imputed(ex.acgh) <- impute.lowess(ex.acgh)
 ## Determining hmm states of the clones
 ## WARNING: Calculating the states takes some time
 
-hmm(ex.acgh) <- find.hmm.states(ex.acgh)
+##in the interests of time, hmm-finding function is commented out
+##instead the states previosuly save are assigned
+##hmm(ex.acgh) <- find.hmm.states(ex.acgh)
+
+hmm(ex.acgh) <- ex.acgh.hmm
 hmm.merged(ex.acgh) <-
    mergeHmmStates(ex.acgh, model.use = 1, minDiff = .25)
 

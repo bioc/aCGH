@@ -27,13 +27,15 @@ impute.lowess(aCGH.obj, chrominfo = human.chrom.info.Jul03, maxChrom =
 }
 \examples{
 
-datadir <- system.file("data", package = "aCGH")
+datadir <- system.file(package = "aCGH")
+datadir <- paste(datadir, "/examples", sep="")
+
 clones.info <-
-      read.table(file = file.path(datadir, "clones.info.ex.csv"),
-                 header = TRUE, sep = "\t")
+      read.table(file = file.path(datadir, "clones.info.ex.txt"),
+                 header = TRUE, sep = "\t", quote="", comment.char="")
 log2.ratios <-
-      read.table(file = file.path(datadir, "log2.ratios.ex.csv"),
-                 header = TRUE, sep = "\t")
+      read.table(file = file.path(datadir, "log2.ratios.ex.txt"),
+                 header = TRUE, sep = "\t", quote="", comment.char="")
 ex.acgh <- create.aCGH(log2.ratios, clones.info)
 
 ## Imputing the log2 ratios 

@@ -573,8 +573,7 @@ subset.hmm <-
         else
             ll$chroms
     with(x,
-         list(hmm =
-              list(nstates.hmm =
+         list(nstates.hmm =
                    lapply(nstates.hmm,
                           function(nstates) nstates[chroms ,j]
                           ),
@@ -589,12 +588,13 @@ subset.hmm <-
                                                     (3 + (k - 1) * 6):(2 + k * 6)
                                                     )
                                              )
-                                   )
+					)
+                                   
                                  ]
                           )
-                   ),
+                   )
               )
-         )
+         
 
 }
 
@@ -692,8 +692,9 @@ subset.hmm.merged <-
             else
             {
                 
-                warning("For now just subsetting the log2.ratios\
-and phenotype. Please rerun the find.hmm.states function!")
+                #warning("For now just subsetting the log2.ratios\
+#and phenotype. Please rerun the find.hmm.states function!")
+		warning("subsetting the log2.ratios only")
                 list(log2.ratios =
                      aCGH.obj$log2.ratios[i, j, drop = FALSE],
                      clones.info =
@@ -764,11 +765,12 @@ plot.aCGH <-
 {
 
     ll <- list(...)
-    dat <- 
-        if (!is.null(ll$imp) && ll$imp)
-            as.matrix(log2.ratios.imputed(x))
-        else
-            as.matrix(log2.ratios(x))
+    #dat <- 
+    #    if (!is.null(ll$imp) && ll$imp)
+    #        as.matrix(log2.ratios.imputed(x))
+    #    else
+    #        as.matrix(log2.ratios(x))
+    dat <- as.matrix(log2.ratios(x))
     Colv <- 
         if (!is.null(ll$Colv) && ll$Colv)
             ll$Colv

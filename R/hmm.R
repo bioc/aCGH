@@ -119,18 +119,18 @@ states.hmm.func <-
 ######################################
     ##initial clustering:
 
-    pam2 <- pam(y,2)
-    pam3 <- pam(y,3)
-    pam4 <- pam(y,4)
-    pam5 <- pam(y,5)
+    pam2 <- kmeans(y,2)
+    pam3 <- kmeans(y,3)
+    pam4 <- kmeans(y,4)
+    pam5 <- kmeans(y,5)
 
 #####################
     ##means:
 
-    mu2 <- c(pam2$medoids)
-    mu3 <- c(pam3$medoids)
-    mu4 <- c(pam4$medoids)
-    mu5 <- c(pam5$medoids)
+    mu2 <- c(pam2$centers)
+    mu3 <- c(pam3$centers)
+    mu4 <- c(pam4$centers)
+    mu5 <- c(pam5$centers)
 
 ####################################
     ##trans. matrices:

@@ -974,7 +974,7 @@ plotCGH.func <-
 #################################################################################
 ##auxilliary function for frequency plot
 
-##gainloss.func <- function (dat, cols,thres, quant=.5)
+##gainLoss <- function (dat, cols,thres, quant=.5)
 ##{
 
 ##if (length(thres) == 1)
@@ -1092,7 +1092,7 @@ plotfreq.stat.final.func <-
     {
 	
 	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-	gainloss[[j]] <- gainloss.func(dat=data, cols=cols,thres=thres)
+	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres)
 	
     }
 
@@ -1348,7 +1348,7 @@ plotfreq.stat.chrom.final.func <-
     {
 	
 	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-	gainloss[[j]] <- gainloss.func(dat=data, cols=cols,thres=thres)
+	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres)
 	
     }
 
@@ -1536,7 +1536,7 @@ plotfreq.stat.chrom.final.func <-
 ##{
 
 ##	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-##	gainloss[[j]] <- gainloss.func(dat=data, cols=cols,thres=thres, quant=quant.col)
+##	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres, quant=quant.col)
 
 ##}
 
@@ -1867,7 +1867,7 @@ plotfreq.givenstat.final.colors.func <-
     {
 	
 	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-	gainloss[[j]] <- gainloss.func(dat=data, cols=cols,thres=thres, quant=quant.col)
+	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres, quant=quant.col)
 	
     }
 

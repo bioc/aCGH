@@ -44,7 +44,7 @@ aCGH.read.Sprocs <-
              minreplic = 2, chrom.remove.threshold = 24,
              prop.missing = .25, sample.names = fnames,
              sample.quality.threshold = .4,
-             cols = c("Log2Rat", "Log2StdDev", "NReplic", "Bad.P"))
+             cols = c("Log2Rat", "Log2StdDev", "NReplic", "Bad.P"), unmapScreen=TRUE, dupRemove = TRUE)
 {
     
     maxdiff.func <-
@@ -74,11 +74,12 @@ aCGH.read.Sprocs <-
     ## screening out clones with < 2 replicates or SD > .2 or
     ## SPROC indicator of 1
 
+
     log2.ratios <-
         read.Sproc.files(fnames, maxsd = maxsd, minreplic = minreplic,
                          cols = cols)
     colnames(log2.ratios) <- sample.names
-
+    	
     ## Extract the clones information from the first file in the list
     
     clones.info <- 
@@ -89,14 +90,18 @@ aCGH.read.Sprocs <-
                             )
     
     ## if clones have newer mapping associated with them
+
     if (!is.null(latest.mapping.file))
     {
 
         latest.mapping <-
             read.table(latest.mapping.file, sep = "\t", h = TRUE,
                        quote = "", comment.char = "")[ ,1:4 ]
+	
+     
         colnames(latest.mapping) <-
             dotify.names(colnames(latest.mapping))
+	
         ind.match <-
             match(as.character(clones.info$Clone),
                   as.character(latest.mapping$USER.CLONE.ID)
@@ -109,13 +114,18 @@ aCGH.read.Sprocs <-
     colnames(clones.info) <- c("Clone", "Target", "Chrom", "kb")
     rownames(log2.ratios) <- clones.info$Clone
     
+    if (unmapScreen)
+    {
     ## remove unmapped clones
-    ind.unmap <-
+    	ind.unmap <-
         which(clones.info$Chrom > chrom.remove.threshold |
               is.na(clones.info$Chrom) | is.na(clones.info$kb))
-    clones.info <- clones.info[ -ind.unmap, ]
-    log2.ratios <- log2.ratios[ -ind.unmap, ]
-
+	if (length(ind.unmap) > 0)
+	{
+    		clones.info <- clones.info[ -ind.unmap, ]
+    		log2.ratios <- log2.ratios[ -ind.unmap, ]
+	}
+     }
     ## reorder by chromosome and chromosomal position
     ord <- order(clones.info$Chrom, clones.info$kb)
     clones.info <- clones.info[ ord, ]
@@ -133,13 +143,12 @@ aCGH.read.Sprocs <-
     ## screen out clones missing in > prop.missing% of the samples:
 
     prop.miss <- apply(log2.ratios, 1, prop.na)
-    clones.info.screen <-
-        clones.info[ prop.miss <= prop.missing, ]
+    clones.info <- clones.info[ prop.miss <= prop.missing, ]
     log2.ratios <- log2.ratios[ prop.miss <= prop.missing, ]
 
     ## determine duplicates and average/remove them
 
-    tbl <- table(clones.info.screen$Clone)
+    tbl <- table(clones.info$Clone)
     qual.rep <- NULL
     if (any(tbl > 1))
     {
@@ -151,8 +160,8 @@ aCGH.read.Sprocs <-
         for (i in 1:length(tbl))
         {
 
-            ind1 <- which(clones.info.screen$Clone == nms[i])
-            cat(as.character(clones.info.screen$Clone[ind1[1]]),
+            ind1 <- which(clones.info$Clone == nms[i])
+            cat(as.character(clones.info$Clone[ind1[1]]),
                 "\t", ind1, "\n")
             vec <- apply(log2.ratios[ ind1, ], 2, mean, na.rm = TRUE)
             md <- apply(log2.ratios[ ind1, ], 2, maxdiff.func)
@@ -160,8 +169,11 @@ aCGH.read.Sprocs <-
             qual.rep[1, i] <- round(median(md, na.rm = TRUE), 2)
             qual.rep[2, i] <-
                 round(mincorr.func( t(log2.ratios[ ind1, ]) ), 2)
-            for (j in 1:length(ind1))
-                log2.ratios[ ind1[j], ] <- vec
+	    if (dupRemove)
+	    {
+            	for (j in 1:length(ind1))
+                	log2.ratios[ ind1[j], ] <- vec
+	    }
             
         }
         qual.rep <- rbind(tbl, qual.rep)
@@ -170,19 +182,135 @@ aCGH.read.Sprocs <-
     ## contains median of abs max difference among all replicates and
     ## min correlations between replicates
 
-    dupl  <- duplicated(clones.info.screen$Clone)
-    clones.info.screen <- clones.info.screen[ !dupl, ]
-    log2.ratios <- log2.ratios[ !dupl, ]
-
+    
+    if (dupRemove)
+    {
+	dupl  <- duplicated(clones.info$Clone)
+    	clones.info <- clones.info[ !dupl, ]
+    	log2.ratios <- log2.ratios[ !dupl, ]
+    }
     if (!is.null(sample.names))
         colnames(log2.ratios) <- sample.names
 
-    clones.info.screen$Clone <- factor(clones.info.screen$Clone)
-    clones.info.screen$Target <- factor(clones.info.screen$Target)
-    value <- create.aCGH(log2.ratios, clones.info.screen)
+    clones.info$Clone <- factor(clones.info$Clone)
+    clones.info$Target <- factor(clones.info$Target)
+    value <- create.aCGH(log2.ratios, clones.info)
     attr(value, "call") <- sys.call()
     value$qual.rep <- qual.rep
     value$bad.quality.index <- bad.quality.index
     value
 
 }
+
+###########################
+
+aCGH.process <-
+    function(aCGH.obj, chrom.remove.threshold = 24,
+             prop.missing = .25, sample.quality.threshold = .4, unmapScreen=TRUE, dupRemove = TRUE)
+{
+    
+
+maxdiff.func <-        function(x)
+            abs(max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+
+    mincorr.func <-   function(A)
+            min(cor(A, use = "pair", method = "spearman"))  
+  
+    log2.ratios <- log2.ratios(aCGH.obj)
+        
+    ## Extract the clones information from the first file in the list
+    
+    clones.info <- clones.info(aCGH.obj)
+            
+    if (unmapScreen)
+    {
+    ## remove unmapped clones
+    	ind.unmap <-
+        which(clones.info$Chrom > chrom.remove.threshold |
+              is.na(clones.info$Chrom) | is.na(clones.info$kb))
+	if (length(ind.unmap) > 0)
+	{
+    		clones.info <- clones.info[ -ind.unmap, ]
+    		log2.ratios <- log2.ratios[ -ind.unmap, ]
+	}
+     }
+    ## reorder by chromosome and chromosomal position
+    ord <- order(clones.info$Chrom, clones.info$kb)
+    clones.info <- clones.info[ ord, ]
+    log2.ratios <- log2.ratios[ ord, ]
+
+    ## mark those samples that have bad quality
+    bad.quality.index <-
+        which(apply(log2.ratios,
+                    2,
+                    function(col)
+                    mean(is.na(col)) > sample.quality.threshold
+                    )
+              )
+
+    ## screen out clones missing in > prop.missing% of the samples:
+
+    prop.miss <- apply(log2.ratios, 1, prop.na)
+    clones.info <-
+        clones.info[ prop.miss <= prop.missing, ]
+    log2.ratios <- log2.ratios[ prop.miss <= prop.missing, ]
+
+    ## determine duplicates and average/remove them
+
+    tbl <- table(clones.info$Clone)
+    qual.rep <- NULL
+    if (any(tbl > 1))
+    {
+        
+        tbl <- tbl[tbl > 1]
+        qual.rep <- matrix(0, ncol = length(tbl), nrow = 2)
+        nms <- names(tbl)
+	if (dupRemove)
+	{
+        	cat("\nAveraging duplicated clones\n")
+        }
+	for (i in 1:length(tbl))
+        {
+
+            ind1 <- which(clones.info$Clone == nms[i])
+            cat(as.character(clones.info$Clone[ind1[1]]),
+                "\t", ind1, "\n")
+            vec <- apply(log2.ratios[ ind1, ], 2, mean, na.rm = TRUE)
+            md <- apply(log2.ratios[ ind1, ], 2, maxdiff.func)
+            md <- md[md > 0]
+            qual.rep[1, i] <- round(median(md, na.rm = TRUE), 2)
+            qual.rep[2, i] <-
+                round(mincorr.func( t(log2.ratios[ ind1, ]) ), 2)
+	    if (dupRemove)
+	    {
+            	for (j in 1:length(ind1))
+                	log2.ratios[ ind1[j], ] <- vec
+	    }
+            
+        }
+        qual.rep <- rbind(tbl, qual.rep)
+
+    }
+    ## contains median of abs max difference among all replicates and
+    ## min correlations between replicates
+
+    
+    if (dupRemove)
+    {
+	dupl  <- duplicated(clones.info$Clone)
+    	clones.info <- clones.info[ !dupl, ]
+    	log2.ratios <- log2.ratios[ !dupl, ]
+    }
+
+    clones.info$Clone <- factor(clones.info$Clone)
+    clones.info$Target <- factor(clones.info$Target)
+    value <- create.aCGH(log2.ratios, clones.info, phenotype(aCGH.obj))
+    attr(value, "call") <- sys.call()
+    value$qual.rep <- qual.rep
+    value$bad.quality.index <- bad.quality.index
+    value
+
+}
+
+###########################
+

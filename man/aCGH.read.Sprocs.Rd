@@ -14,8 +14,7 @@ aCGH.read.Sprocs(fnames, latest.mapping.file = NULL, maxsd = 0.2,
                  minreplic = 2, chrom.remove.threshold = 24,
                  prop.missing = 0.25, sample.names = fnames,
                  sample.quality.threshold = 0.4,
-                 cols = c("Log2Rat", "Log2StdDev", "NReplic", "Bad.P")
-                 )
+                 cols = c("Log2Rat", "Log2StdDev", "NReplic", "Bad.P"), unmapScreen=TRUE, dupRemove = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -45,10 +44,13 @@ aCGH.read.Sprocs(fnames, latest.mapping.file = NULL, maxsd = 0.2,
     ratios, number of replicates for each clone and flags for bad
     clones. Defaults to c("Log2Rat", "Log2StdDev", "NReplic",
     "Bad.P"). Note that all the whitespace characters in the column
-    names will be replaced with dots.
-  }
+    names will be replaced with dots.}
+  \item{unmapScreen}{Indicator for whether clones with incomplete mapping information should be removed from the dataset. Note that leaving them in may cause plotting routines fail. Defaults to TRUE}
+   \item{dupRemove}{Indicator for whether clones with duplicate names should be averaged and removed from the dataset leaving only one occurence of each duplicated set.Defaults to TRUE}
+	
+
+ }
   
-}
 \value{
   Object of class \code{aCGH}.
 }
@@ -60,12 +62,16 @@ aCGH.read.Sprocs(fnames, latest.mapping.file = NULL, maxsd = 0.2,
 
 datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
-      file.path(datadir, "human.clones.info.Jul03.csv")
+      file.path(datadir, "human.clones.info.Jul03.txt")
 ex.acgh <-
-    aCGH.read.Sprocs(dir(path = datadir,
-                     pattern = paste("*", "txt", sep = "\."),
-                     full.names = TRUE), latest.mapping.file,
-                     chrom.remove.threshold = 23)
+	aCGH.read.Sprocs(dir(path = datadir,
+			pattern = paste("*", "*sproc*", sep = "\."),
+			full.names = TRUE), latest.mapping.file,
+			chrom.remove.threshold = 23)
+#    aCGH.read.Sprocs(dir(path = datadir,
+#                     pattern = paste("*", "txt", sep = "\."),
+#                     full.names = TRUE), latest.mapping.file,
+#                     chrom.remove.threshold = 23)
 ex.acgh
 
 ## Testing if creating the object went right. Should all be true.

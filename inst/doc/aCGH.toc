@@ -1,0 +1,16 @@
+\contentsline {section}{\numberline {1}Overview}{1}{section.1}
+\contentsline {section}{\numberline {2}Data}{2}{section.2}
+\contentsline {section}{\numberline {3}Examples}{2}{section.3}
+\contentsline {subsection}{\numberline {3.1}Creating aCGH object from log2.ratios and clone info files}{2}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Filtering and imputation for objects of class aCGH}{3}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Printing, summary and basic plotting (fig. \ref {cap:Plot-frequency-samples}) for objects of class aCGH}{3}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Reading Sproc files}{6}{subsection.3.4}
+\contentsline {subsection}{\numberline {3.5}Basic plot for batch of aCGH Sproc files. (fig. \ref {cap:Basic-plot})}{7}{subsection.3.5}
+\contentsline {subsection}{\numberline {3.6}Subsetting example}{8}{subsection.3.6}
+\contentsline {subsection}{\numberline {3.7}Basic plot for the ordered log2 ratios along the genome}{9}{subsection.3.7}
+\contentsline {subsection}{\numberline {3.8}Computing and plotting hmm states}{10}{subsection.3.8}
+\contentsline {subsection}{\numberline {3.9}Plotting summary of the tumor profiles(fig. \ref {cap:Plotting-summary-tumor-profiles})}{11}{subsection.3.9}
+\contentsline {subsection}{\numberline {3.10}Overall frequency plot (fig. \ref {cap:Overall-frequency-plot})}{11}{subsection.3.10}
+\contentsline {subsection}{\numberline {3.11}Testing association of clones with categorical, censored or continuous outcomes.}{14}{subsection.3.11}
+\contentsline {subsection}{\numberline {3.12}Clustering samples}{24}{subsection.3.12}
+\contentsline {section}{\numberline {4}Acknowledgements}{25}{section.4}

@@ -1,4 +1,3 @@
-
 create.resT <-
     function(resT.raw, p.adjust.method = "fdr")
 {
@@ -15,14 +14,10 @@ create.resT <-
 
 }
 
-aCGH.test <-
-    function(aCGH.obj, rsp,
-             test = c( "coxph", "survdiff", "linear.regression"),
-###             "logistic.regression"),
-             p.adjust.method = "fdr", subset = NULL, strt = NULL, ...)
+aCGH.test <- function(aCGH.obj, rsp, test = c("survdiff", "coxph", "linear.regression"),p.adjust.method = "fdr", subset = NULL, strt = NULL, ...)
 {
 
-    l2r <- log2.ratios.imputed(aCGH.obj)
+    l2r <- as.matrix(log2.ratios.imputed(aCGH.obj))
     if (!is.null(subset))
         l2r <- l2r[ subset, ]
     test <- match.arg(test)
@@ -69,34 +64,40 @@ aCGH.test <-
                                   c(0, 1)
                               else
                               {
-                                  
-                                  logtest <-
-                                      -2 * (coxph.fit$loglik[1] -
-                                            coxph.fit$loglik[2])
-                                  beta <- coxph.fit$coef
-                                  df <- length(beta[!is.na(beta)])
-                                  c(logtest, 1 - pchisq(logtest, df))
+                                  cf <-  coxph.fit$coef
+				  cf.se <- sqrt(coxph.fit$var)
+				  cf.std <- cf/cf.se
+				  c(cf.std, 2*(1-pnorm(abs(cf.std))))
+                                  #logtest <-
+                                  #    -2 * (coxph.fit$loglik[1] -
+                                  #          coxph.fit$loglik[2])
+                                  #beta <- coxph.fit$coef
+                                  #df <- length(beta[!is.na(beta)])
+                                  #c(logtest, 1 - pchisq(logtest, df))
                                   
                               }
                               
                           },
                           linear.regression = {
                               
-                              fstat <-
-                                  summary(lm(clone ~ rsp, ...))$fstatistic
-                              c(fstat[1],
-                                1 - pf(fstat[1], fstat[2], fstat[3]))
+				reg <- lm(fmla, ...)
+				cf <- (summary(reg))$coef
+				c(cf[2,3], cf[2,4])
+                        ##      fstat <-
+                        ##       summary(lm(clone ~ rsp, ...))$fstatistic
+                        ##   c(fstat[1],
+                        ##    1 - pf(fstat[1], fstat[2], fstat[3]))
                               
                           }
 ###                          logistic.regression = {
-
+###
 ###                              glm.fit <-
 ###                                  try(glm(fmla, family=binomial()))
 ###                              if (inherits(glm.fit, "try-error"))
 ###                                  c(0, 1)
 ###                              else
 ###                              {
-                                  
+###                                  
 ###                                  stat <-
 ###                                      2 * (glm.fit$null.deviance -
 ###                                           glm.fit$deviance)
@@ -104,9 +105,9 @@ aCGH.test <-
 ###                                    1 - pchisq(stat,
 ###                                               glm.fit$df.null -
 ###                                               glm.fit$df.residual))
-
+###
 ###                              }
-                              
+###                              
 ###                          }
                           )
                    
@@ -116,6 +117,9 @@ aCGH.test <-
     create.resT(resT, p.adjust.method)
     
 }
+
+
+
 
 threshold.func <-
     function(dat, thresAbs)
@@ -141,13 +145,13 @@ samples")
     sapply(1:ncol(dat),
            function(i) {
                
-               tmp <- rep(0, ncol(dat))
+               tmp <- rep(NA, nrow(dat))
                na.col <- is.na(dat[ ,i ])
                col <- dat[ ,i ][!na.col]
                tmp[!na.col] <-
-                   ifelse(col > thresAbs[i],
+                   ifelse(col >= thresAbs[i],
                           1,
-                          ifelse(col < thresAbs[i], -1, 0)
+                          ifelse(col <= -thresAbs[i], -1, 0)
                           )
                
                tmp
@@ -270,8 +274,8 @@ prop.na <-
     function(x)
     mean(is.na(x))
 
-gainloss.func <-
-    function (dat, cols, thres, quant = .5)
+gainLoss <-
+    function (dat, cols, thres = 0.25)
 {
 
     if (length(thres) == 1)
@@ -281,7 +285,7 @@ gainloss.func <-
 of samples")
     dt <- as.matrix(dat[ ,cols ])
     thr <- thres[cols]
-    loss.med <- loss <- gain.med <- gain <- rep(0, nrow(dt))
+    loss <- gain <- rep(0, nrow(dt))
     
     for (i in 1:nrow(dt))
         if (!all(is.na(dt[ i, ])))
@@ -292,19 +296,17 @@ of samples")
             x <- x[!is.na(x)]
             tmp.gain <- x >= th
             gain[i] <- mean(tmp.gain)
-            if (any(tmp.gain))
-                gain.med[i] <- quantile(x[tmp.gain], 1 - quant)
+            #if (any(tmp.gain))
+            #    gain.med[i] <- quantile(x[tmp.gain], 1 - quant)
             tmp.loss <- x <= -th
             loss[i] <- mean(tmp.loss)
-            if (any(tmp.loss))
-                loss.med[i] <- quantile(x[tmp.loss], quant)
+            #if (any(tmp.loss))
+            #    loss.med[i] <- quantile(x[tmp.loss], quant)
             
         }
     
-    list(gainP = gain,
-         lossP = loss,
-         gainMed = gain.med,
-         lossMed = loss.med)
+    list(gainP = gain,lossP = loss)
+       
     
 }
 
@@ -319,21 +321,23 @@ plotFreqStatGrey <-
 plotFreqStat <-
     function(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
              chrominfo = human.chrom.info.Jul03,
-             X = TRUE, Y = FALSE, threshold = TRUE, minChanged = 0,
-             rsp.uniq = unique(pheno),
+             X = TRUE, Y = FALSE, rsp.uniq = unique(pheno),
              all = length(rsp.uniq) == 1 && is.null(resT),
-             nlim = 1, titles = if (all) "All Samples" else rsp.uniq,
-             cutplot = 0, thres = .25, ylm = c(-1, 1), ngrid = 2,
-             p.thres = c(.01, .05, .1), mincolors = .1,
-             quant.col = .11, numaut = 22, onepage = TRUE,
+             titles = if (all) "All Samples" else rsp.uniq,
+             cutplot = 0, thres = .25, factor=2.5, ylm = c(-1, 1), 
+	     p.thres = c(.01, .05, .1), numaut = 22, onepage = TRUE,
              colored = TRUE
-             )
-{
+             ){
 
+#check if sd.samples are non-empty:
+    if (!is.null(sd.samples(aCGH.obj)))
+	{
+		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
+	}
     col.scheme <- 
         if (colored)
             list(pal =
-                 c("red", "blue", "green", "yellow")[
+                 c("red", "blue", "green", "orange")[
                                                      1:length(p.thres)
                                                      ],
                  gain.low = "white",
@@ -363,18 +367,10 @@ plotFreqStat <-
                  abline3 = "black",
                  abline4 = "grey50",
                  )
+	
     data <- log2.ratios(aCGH.obj)
     datainfo <- clones.info(aCGH.obj)
-    dataSign <-
-        if (is.null(log2.ratios.imputed(aCGH.obj)))
-        {
-            
-            warning("Imputing the log2 ratios")
-            impute.lowess(aCGH.obj)
-            
-        }
-        else
-            log2.ratios.imputed(aCGH.obj)
+    
     rsp.uniq <- sort(rsp.uniq)
     
     ## creating response matrix colmatr
@@ -394,51 +390,29 @@ plotFreqStat <-
                    )
     
     ## screening out clones that are gained or lost in < minChanged in
-    ## classes under comparison indeces present:
+    ## classes under comparison indeces present: DON't do this anymore
+    ## since rest is compute seprately : NOT ANYMORE
 
-    tmp <- apply(as.matrix(colmatr), 2, sum)
-    indecesnow <- which(tmp == 1)
-    data.thres <- threshold.func(data, thresAbs = thres)
-    prop.ch <- changeProp.func(dat = data.thres, colMatr = colmatr)
-    maxch <- changeProp.overall.func(dat = data.thres[ ,indecesnow ])
-    clones.index <- which(maxch >= minChanged)
+    #tmp <- apply(as.matrix(colmatr), 2, sum)
+    #indecesnow <- which(tmp == 1)
+    #data.thres <- threshold.func(data, thresAbs = thres)
+    #prop.ch <- changeProp.func(dat = data.thres, colMatr = colmatr)
+    #maxch <- changeProp.overall.func(dat = data.thres[ ,indecesnow ])
+    #clones.index <- which(maxch >= minChanged)
+     
 
-    ##removing clones to skip from the dataset
+    ##removing clones to skip from the dataset NOT ANYMORE
 
-    data <- data[clones.index,]
-    data.thres <- data.thres[clones.index,]
-    dataSign <- dataSign[clones.index,]
-    datainfo <- datainfo[clones.index,]
+    #data <- data[clones.index,]
+    #data.thres <- data.thres[clones.index,]
+    #datainfo <- datainfo[clones.index,]
 
-    ## creating color matrix for displaying intensity of gains and losses
-    ## and for plotting p-values
 
-    colors.gain <-
-        maPalette(low = col.scheme$gain.low,
-                  high = col.scheme$gain.high,
-                  k = ngrid)
-    colors.loss <-
-        maPalette(low = col.scheme$loss.low,
-                  high = col.scheme$loss.high,
-                  k = ngrid)
-###    sq.loss <- seq(-nlim, -mincolors, length = ngrid + 1)
-###    sq.gain <- seq(mincolors, nlim, length = ngrid + 1)
-###    matr.colors.loss <-
-###        data.frame(sq.loss[ -length(sq.loss) ], sq.loss[-1],
-###                   colors.loss)
-###    matr.colors.gain <-
-###        data.frame(sq.gain[ -length(sq.gain) ], sq.gain[-1],
-###                   colors.gain)
-
-    ## Now, start:
-    ## if perform significance analysis on thresholded data only:
-
-    if (threshold)
-	dataSign <- threshold.func(dataSign, thres)
     nr <- nrow(colmatr)
     
-    ## if 1 class only, no significance analysis:
-    if (!all)
+    ## if 1 class only or missing resT, no significance analysis. 
+    ##Otherwise: extra figure
+    if (!is.null(resT))
         nr <- nr + 1
     
     tmp <- as.data.frame(matrix(0, ncol = 2, nrow = 1))
@@ -446,23 +420,22 @@ plotFreqStat <-
     gainloss <-
         lapply(1:nrow(colmatr),
                function(j)
-               gainloss.func(dat = data,
+               gainLoss(dat = data,
                              cols = which(colmatr[j, ] == 1),
-                             thres = thres,
-                             quant = quant.col)
+                             thres = thres)
                )
-    dt <- dataSign[ ,colmatr[ 1, ] == 1, drop = FALSE ]
+    dt <- data[ ,colmatr[ 1, ] == 1, drop = FALSE ]
     rsp <- rep(1, ncol(dt))
     if (nrow(colmatr) > 1)
         for (j in 2:nrow(colmatr))
         {
             
-            dt <- cbind(dt, dataSign[ ,colmatr[ j, ] == 1 ])
+            dt <- cbind(dt, data[ ,colmatr[ j, ] == 1])
             rsp <- c(rsp, rep(j, sum(colmatr[ j, ] == 1)))
             
         }
     rsp <- rsp - 1
-    pal.now <- col.scheme$pal
+    
 
     ##Now preparing for plotting:
 
@@ -497,52 +470,19 @@ plotFreqStat <-
         ylm[1] <- min(ylm, min(gl$lossP))
         ylm[2] <- max(ylm, max(gl$gainP))
 
-###        col.nrow <-
-###            sapply(gl$gainMed,
-###                   function(cl) {
-                       
-###                       if (cl >= nlim)
-###                           cl <- nlim - 10 ^ (-6)
-###                       cnr <- 
-###                           which(cl >= matr.colors.gain[ ,1 ] &
-###                                 cl < matr.colors.gain[ ,2 ])
-###                       if (length(cnr) > 0)
-###                           cnr
-###                       else
-###                           1
-                       
-###                   }
-###                   )
         ind <- which(gl$gainP >= cutplot)
         plot(kb.loc[ind], gl$gainP[ind],
              col = "green",
-###             as.character(matr.colors.gain[ind, 3][col.nrow[ind]]),
              type = "h", xlab = "chromosome number",
              ylab = "Fraction gained or lost", pch = 18, main = tl,
              ylim = ylm,
              xlim = c(0, max(cumsum(chrominfo$length), kb.loc[ind],
-             rm.na = TRUE))
-             )
-###        col.nrow <-
-###            sapply(gl$lossMed,
-###                   function(cl) {
-                       
-###                       if (cl <=- nlim)
-###                           cl <- -nlim + 10 ^ (-6)
-###                       cnr <-
-###                           which(cl >= matr.colors.loss[ ,1 ] &
-###                                 cl < matr.colors.loss[ ,2 ])
-###                       if (length(cnr) > 0)
-###                           cnr
-###                       else
-###                           ngrid
-                       
-###                   }
-###                   )
+             rm.na = TRUE)), xaxt="n")
+             
+	axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
         ind <- gl$lossP >= cutplot
         points(kb.loc[ind], -gl$lossP[ind],
                col = "red",
-###               as.character(matr.colors.loss[ind, 3][col.nrow[ind]]),
                type = "h")
 
         abline(h = 0)
@@ -556,14 +496,14 @@ plotFreqStat <-
             mtext(paste("", i), side = 1, at = (chrom.mid[i]),
                   line = .3, col = col.scheme$mtext, cex.main = .5)
         if (X)
-            if (i == numaut)
+            if (is.even(numaut))
                 mtext("X", side = 1, at = (chrom.mid[numaut + 1]),
                       line = .3, col = col.scheme$mtext, cex.main = .5)
             else
                 mtext("X", side = 3, at = (chrom.mid[numaut + 1]),
                       line = .3, col = col.scheme$mtext, cex.main = .5)
         if (Y)
-            if (i == numaut)
+            if (is.even(numaut))
                 mtext("Y", side = 3, at = (chrom.mid[numaut + 2]),
                       line = .3, col = col.scheme$mtext, cex.main = .5)
             else
@@ -571,20 +511,17 @@ plotFreqStat <-
                       line = .3, col = col.scheme$mtext, cex.main = .5)
         
     }
-    if (!all)
+    if (!is.null(resT))
     {
         
         ## Process statistics
         ## for plotting test stats and p-values
         
-###        res <- resT[clones.index ,]
-###        maxT <- res$adjp[order(res$index)]
-###        teststat <- abs(res$teststat[order(res$index)])
         res <- resT[order(resT$index) ,]
-        res <- res[res$index %in% clones.index ,]
+        #res <- res[res$index %in% clones.index ,]
         maxT <- res$adjp
         teststat <- abs(res$teststat)
-        st.now <-
+        st <-
             sapply(p.thres,
                    function(threshold) {
                        
@@ -600,12 +537,15 @@ plotFreqStat <-
              xlab = "chromosome number", ylab = "clone statistic",
              pch = 18, main = paste(titles, collapse = " vs "),
              xlim =
-             c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE))
+             c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE)), xaxt="n"
              )
+	axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)	
+	st.now <- rev(st)
+	pal.now <- rev(col.scheme$pal)
         if (length(st.now) > 0)
-            abline(h = rev(st.now), col = rev(pal.now), lty = 2)
+            abline(h = st.now, col = pal.now, lty = 2)
 
-    }
+    
     abline(v = cumsum(chrominfo$length), col = col.scheme$abline3)
     abline(v = chrom.centr, lty = 2, col = col.scheme$abline4)
 
@@ -616,32 +556,38 @@ plotFreqStat <-
         mtext(paste("", i), side = 3, at = chrom.mid[i], line = .3,
               col = col.scheme$mtext, cex.main = .5)
     if (X)
-        if (i == numaut)
-            mtext("X", side = 1, at = chrom.mid[numaut + 1],
-                  line = .3, col = col.scheme$mtext, cex.main = .5)
-        else
-            mtext("X", side = 3, at = chrom.mid[numaut + 1],
-                  line = .3, col = col.scheme$mtext, cex.main = .5)
-    if (Y)
-        if (i == numaut)
-            mtext("Y", side = 3, at = chrom.mid[numaut + 2],
-                  line = .3, col = col.scheme$mtext, cex.main = .5)
-        else
-            mtext("Y", side = 1, at = chrom.mid[numaut + 2],
-                  line = .3, col = col.scheme$mtext, cex.main = .5)
-    
+            if (is.even(numaut))
+                mtext("X", side = 1, at = (chrom.mid[numaut + 1]),
+                      line = .3, col = col.scheme$mtext, cex.main = .5)
+            else
+                mtext("X", side = 3, at = (chrom.mid[numaut + 1]),
+                      line = .3, col = col.scheme$mtext, cex.main = .5)
+        if (Y)
+            if (is.even(numaut))
+                mtext("Y", side = 3, at = (chrom.mid[numaut + 2]),
+                      line = .3, col = col.scheme$mtext, cex.main = .5)
+            else
+                mtext("Y", side = 1, at = (chrom.mid[numaut + 2]),
+                      line = .3, col = col.scheme$mtext, cex.main = .5)
+        
+	}
 }
 
 summarize.clones <-
     function(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
-             rsp.uniq = unique(pheno), minChanged = 0, thres = .2,
-             all = length(rsp.uniq) == 1 && is.null(resT),
-             p.thres = c(.01, .05, .1))
+             rsp.uniq = unique(pheno), thres = .25,factor=2.5, 
+             all = length(rsp.uniq) == 1 && is.null(resT), titles = if (all) "all" else rsp.uniq)
 {
 
+	#check if sd.samples are non-empty:
+    if (!is.null(sd.samples(aCGH.obj)))
+	{
+		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
+	}
+    
     data <- log2.ratios(aCGH.obj)
     datainfo <- clones.info(aCGH.obj)
-    dataSign <- log2.ratios.imputed(aCGH.obj)
+    
     rsp.uniq <- sort(rsp.uniq)
 
     colmatr <-
@@ -658,27 +604,29 @@ summarize.clones <-
                    nrow = 1
                    )
 
-    tmp <- apply(as.matrix(colmatr), 2, sum)
-    indecesnow <- which(tmp == 1)
-    data.thres <- threshold.func(data, thresAbs = thres)
-    prop.ch <- changeProp.func(dat = data.thres, colMatr = colmatr)
-    maxch <- changeProp.overall.func(dat = data.thres[ ,indecesnow ])
-    clones.index <- which(maxch >= minChanged)
-    data <- data[clones.index,]
-    data.thres <- data.thres[clones.index,]
-    dataSign <- dataSign[clones.index,]
-    datainfo <- datainfo[clones.index,]
+	data.thres <- threshold.func(data, thresAbs = thres)
+
+####NOT ANYMORE
+    #tmp <- apply(as.matrix(colmatr), 2, sum)
+    #indecesnow <- which(tmp == 1)
+    #prop.ch <- changeProp.func(dat = data.thres, colMatr = colmatr)
+    #maxch <- changeProp.overall.func(dat = data.thres[ ,indecesnow ])
+    #clones.index <- which(maxch >= minChanged)
+    #data <- data[clones.index,]
+    #data.thres <- data.thres[clones.index,]
+    #dataSign <- dataSign[clones.index,]
+    #datainfo <- datainfo[clones.index,]
 
     bac.summary <- table.bac.func(dat = data.thres, colMatr = colmatr)
-    if (!all)
+    if (!is.null(resT))
     {
         
         ## Process statistics
         ## for plotting test stats and p-values
         
         res <- resT[order(resT$index) ,]
-        res <- res[res$index %in% clones.index ,]
-        bac.summary <- cbind(bac.summary, res$rawp, res$adjp)
+        #res <- res[res$index %in% clones.index ,]
+        bac.summary <- cbind(bac.summary, res$teststat, res$rawp, res$adjp)
 
     }
     bac.summary <- as.data.frame(bac.summary)
@@ -690,72 +638,13 @@ summarize.clones <-
     if (nrow(colmatr) > 1)
         for (m in 1:length(rsp.uniq))
             cnames[ (6 * m + 1):(6 * (m + 1)) ] <-
-                paste(nms, rsp.uniq[m], sep = ".")
-    if (!all)
-        cnames[(ncol(bac.summary) - 1):ncol(bac.summary)] <-
-            c("rawp", "adjp.maxT")
+                paste(nms, titles[m], sep = ".")
+    if (!is.null(resT))
+        cnames[(ncol(bac.summary) - 2):ncol(bac.summary)] <-
+            c("stat", "rawp", "adjp")
     colnames(bac.summary) <- cnames
     bac.summary <- cbind(datainfo, bac.summary)
     invisible(bac.summary)
     
 }
 
-## This description is old!
-##frequency plot for the whole genome using outside p-values and stats
-
-##data
-##rsp -- phenotype, NA are not allowed, have to be consequetive integers
-##datainfo
-##chrominfo
-##titles -- the titles of the frequency plots -- has to have as many names as 
-##levels in the response
-##thres -- unique threshold or vector of tumor specific thresholds. In the latter
-##case has to contain as many thershold as samples
-##cutplot -- don't plots clones which gained/lost in fewer than <= fraction of cases
-##sign -- to do significance comparison (T) or not (F). to do comparison uses
-##multtest package
-##nperm -- if sign =T, then how many permutations for maxT
-##test -- name of the test
-##ranks -- whether to work with ranked data If nor, "n"
-##side -- two sisded (abs) test or 1-sided ("upper" or "lower")
-##p.thres -- for which adjusted p-values show the cut-off
-##filePS -- name of the ps/pdf file
-##PS = "ps" or "pdf"
-##X=T -- is X (23) chrom included?
-##Y=F  -- is Y (24) chrom included?
-##numaut=22 -- number of autosomes
-##ngrid=50: density of colors
-##nlim=1: upper limit for solors
-##mincolors: minimum limit for colors
-##by defult "white"corersponds to [-.2,.2] and red and green to [-1,-.2] and [.2,1[]
-##respectively
-## quant.col=.5: percentile for coloring gaind/lost clones -- <= .5, E.g. .25
-##would correspond to taking 25th % for lost and 75% for gained samples
-
-plotFreqGivenStat <-
-    function(aCGH.obj, stat, statPerm, pheno, summarize.clones = FALSE,
-             ...)
-{
-
-    maxstat <- apply(statPerm, 2, max, na.rm = TRUE)
-    plotFreqStat(aCGH.obj,
-                 resT =
-                 list(teststat = stat,
-                      adjp =
-                      sapply(teststat,
-                             function(t.i) sum(maxstat >= t.i)
-                             ) / length(maxstat)
-                      ),
-                 pheno,
-                 summarize.clones = FALSE,
-                 ...)
-    
-}
-
-plotfreqGivenStatFinalColors <-
-    function(aCGH.obj, ...)
-    plotfreq.givenstat.final.colors.func(data =
-                                         log2.ratios(aCGH.obj),
-                                         datainfo =
-                                         clones.info(aCGH.obj),
-                                         ...)

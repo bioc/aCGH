@@ -7,7 +7,6 @@
     require(survival)
     require(multtest)
     require(sma)
-    require(cluster)
-    require(multtest)
+    #require(rmutil)
     
 }

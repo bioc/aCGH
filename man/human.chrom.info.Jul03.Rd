@@ -1,5 +1,6 @@
 \name{human.chrom.info.Jul03}
 \alias{human.chrom.info.Jul03}
+\alias{ex.acgh.hmm}
 \docType{data}
 \title{
   Basic Chromosomal Information for UCSC Human Genome Assembly July 2003

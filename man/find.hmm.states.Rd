@@ -101,15 +101,21 @@ find.hmm.states(aCGH.obj, ...)
 
 datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
-      file.path(datadir, "human.clones.info.Jul03.csv")
+      file.path(datadir, "human.clones.info.Jul03.txt")
 ex.acgh <-
+#    aCGH.read.Sprocs(dir(path = datadir,
+#                     pattern = paste("*", "ratios.ex.txt", sep = "\."),
+#                     full.names = TRUE), latest.mapping.file,
+#                     chrom.remove.threshold = 23)
     aCGH.read.Sprocs(dir(path = datadir,
-                     pattern = paste("*", "txt", sep = "\."),
+                     pattern = paste("*", "*sproc*", sep = "\."),
                      full.names = TRUE), latest.mapping.file,
                      chrom.remove.threshold = 23)
 ex.acgh
 
-hmm(ex.acgh) <- find.hmm.states(ex.acgh, aic = TRUE, delta = 1.5)
+data(colorectal)
+#in the interests of time, we comment the actual hmm-finding function out.
+#hmm(ex.acgh) <- find.hmm.states(ex.acgh, aic = TRUE, delta = 1.5)
 summary(ex.acgh)
 
 }
