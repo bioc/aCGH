@@ -23,20 +23,13 @@ hmm.run.func <-
 
     ##list consists of experiments starting with aic then, if bic, scroll
     ##over deltas
-    nlists <- 0
-    if (aic && bic)
-    {
-        nlists <- 1 + length(delta)
-    }
-    else if (bic)
-    {
-        nlists <- length(delta)
-    }
-    else
-    {
-        nlists <- 1
-    }
 
+    nlists <- 0
+    if (aic)
+        nlists <- 1
+    if (bic)
+        for (j in 1:length(delta))
+            nlists <- nlists+1
     if (nlists > 1)
         for (j in 2:nlists)
         {
