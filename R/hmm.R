@@ -1,58 +1,44 @@
 ##performing HMM:
 
+require(cluster)
+require(repeated)
+require(sma)
+
 #####################################################################
 #####################################################################
 
 hmm.run.func <-
     function(dat, datainfo = clones.info, vr = .01, maxiter = 100,
-             aic = FALSE, bic = TRUE, delta = NA)
+             aic = TRUE, bic = TRUE, delta = 1)
 {
+    
     chrom.uniq <- unique(datainfo$Chrom)
     states <- matrix(NA, nrow=nrow(dat), ncol=(2+6*ncol(dat)))
     states[,1:2] <- cbind(datainfo$Chrom, datainfo$kb)
-    nstates <- matrix(NA, nrow=length(chrom.uniq), ncol=ncol(dat))
+    nstates <-
+        matrix(NA, nrow = length(chrom.uniq), ncol = ncol(dat))
 
     states.list <- list(states)
     nstates.list <- list(nstates)
 
     ##list consists of experiments starting with aic then, if bic, scroll
-    ##over deltas. delta= 1 by default.
+    ##over deltas
 
     nlists <- 0
     if (aic)
-    {
         nlists <- 1
-    }
     if (bic)
-    {
-        if (is.na(delta))
-        {
-            delta <- c(1)
-        }
-        else
-        {
-            delta <- c(1, delta)
-        }
         for (j in 1:length(delta))
-        {
             nlists <- nlists+1
-        }
-    }
-    
     if (nlists > 1)
-    {
         for (j in 2:nlists)
         {
             states.list[[j]] <- states.list[[1]]
             nstates.list[[j]] <- nstates.list[[1]]
         }
-    }
-    
-    
-    
-    
     for (i in 1:ncol(dat))
     {
+        
 ###        print(paste("sample is ", i))
         colstart <- 2+(i-1)*6+1
         colend <- 2+i*6
@@ -60,14 +46,26 @@ hmm.run.func <-
         {
 ###            print(paste("chrom is ", j))
             
-            res <- try(states.hmm.func(sample=i, chrom=j, dat=dat, datainfo=datainfo,vr=vr, maxiter=maxiter, aic=aic, bic=bic, delta=delta, nlists=nlists))
+            res <-
+                try(
+                    states.hmm.func(sample = i, chrom = j,
+                                    dat = dat,
+                                    datainfo = datainfo,
+                                    vr = vr,
+                                    maxiter = maxiter,
+                                    aic = aic, bic = bic,
+                                    delta = delta,
+                                    nlists = nlists
+                                    )
+                    )
             
             for (m in 1:nlists)
             {
-                
-                
-                states.list[[m]][((1:nrow(states))[states[,1]==j]),colstart:colend] <- as.matrix(res$out.list[[m]])
+
+                states.list[[m]][((1:nrow(states))[states[,1]==j]),colstart:colend] <-
+                    as.matrix(res$out.list[[m]])
                 nstates.list[[m]][j,i] <- res$nstates.list[[m]]
+                
             }
             
             
@@ -75,8 +73,8 @@ hmm.run.func <-
         
     }
     list(states.hmm = states.list, nstates.hmm = nstates.list)
+    
 }
-
 #####################################################################
 #####################################################################
 
@@ -84,7 +82,9 @@ hmm.run.func <-
 
 mu1.func <-
     function(p) 
-    matrix(p, nrow = 1)
+{
+    matrix(p, nrow=1)
+}
 
 #####################################################################
 #####################################################################
@@ -101,7 +101,7 @@ states.hmm.func <-
     obs.ord <- obs[order(kb)]
     kb.ord <- kb[order(kb)]
 
-    ind.nonna <- which(!is.na(obs.ord))
+    ind.nonna <- (1:length(obs.ord))[!is.na(obs.ord)]
 
     y <- obs.ord[ind.nonna]
     kb <- kb.ord[ind.nonna]
@@ -135,55 +135,66 @@ states.hmm.func <-
 ####################################
     ##trans. matrices:
 
-    gamma2 <- matrix(c(.9,.1,.1,.9),ncol=2, b = TRUE)
+    gamma2 <- matrix(c(.9,.1,.1,.9), ncol = 2, b = TRUE)
     gamma3 <-
-        matrix(c(.9,.05,.05,.05,.9,.05,.05,.05,.9),ncol=3, b = TRUE)
+        matrix(c(.9,.05,.05,.05,.9,.05,.05,.05,.9), ncol = 3,
+               b = TRUE)
     gamma4 <-
-        matrix(c(.9, rep(.1 / 3, 3), .1 / 3, .9, rep(.1 / 3, 2),
-                 rep(.1 / 3, 2), .9, .1 / 3, rep(.1 / 3, 3), .9 ),
-               ncol = 4, b = TRUE)
+        matrix(c(.9, rep(.1/3,3), .1/3,.9, rep(.1/3,2),
+                 rep(.1/3,2),.9,.1/3, rep(.1/3,3),.9 ), ncol = 4,
+               b = TRUE)
     gamma5 <-
-        matrix(c(.9, rep(.025, 4), .025, .9, rep(.025, 3),
-                 rep(.025, 2), .9, rep(.025, 2), rep(.025, 3), .9,
-                 .025, rep(.025, 4), .9),
-               ncol = 5, b = TRUE)
+        matrix(c(.9, rep(.025,4), .025, .9,
+                 rep(.025,3),rep(.025,2), .9, rep(.025,2),
+                 rep(.025,3), .9, .025,rep(.025,4), .9),ncol=5,
+               b = TRUE)
+    
 
 ####################################
     ##df's for each model
-
-    ##for uniform variance:
-    ##number of states (means) + number of states*(number of states-1) (transitions) #+ 1 (variance)
-
     k1 <- 2
     k2 <- 5
     ##k2.heter <- 6
     k3 <- 10
     ##k3.heter <- 12
-    k4 <- 17
-    ##k4.heter <- 20
-    k5 <- 26
+    k4 <- 12
+    ##k4.heter <- 15
+    k5 <- 16
     ##k5.heter <- 30
 
 ###################################
+
     z1 <- -sum(log(dnorm(y, mean=mean(y), sd=sqrt(var(y)))))
-    z2 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu2, pshape=vr, pgamma=gamma2, iterlim=maxiter))
+    z2 <-
+        try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu2, pshape=vr,
+                   pgamma=gamma2, iterlim=maxiter))
     ##z2.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu2, pshape=rep(vr,2), pgamma=gamma2, iterlim=maxiter))
-    z3 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu3, pshape=vr, pgamma=gamma3, iterlim=maxiter))
+    z3 <-
+        try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu3, pshape=vr,
+                   pgamma=gamma3, iterlim=maxiter))
     ##z3.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu3, pshape=rep(vr,3), pgamma=gamma3, iterlim=maxiter))
-    z4 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu4, pshape=vr, pgamma=gamma4, iterlim=maxiter))
+    z4 <-
+        try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu4, pshape=vr,
+                   pgamma=gamma4, iterlim=maxiter))
     ##z4.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu4, pshape=rep(vr,4), pgamma=gamma4, iterlim=maxiter))
-    z5 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu5, pshape=vr, pgamma=gamma5, iterlim=maxiter))
+    z5 <-
+        try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu5, pshape=vr,
+                   pgamma=gamma5, iterlim=maxiter))
     ##z5.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu5, pshape=rep(vr,5), pgamma=gamma5, iterlim=maxiter))
 
+###############Comments#########################
+###previously had the messages regarding failure of the model fitting for a given
+###number of components shown. However, this interferes with vignette building.
+###thus we took it out. May possibly look for a more elegant way in the future to
+###identify such fits
 
-    options(show.error.messages = TRUE)
+###    options(show.error.messages = TRUE)
+    opts <- options(show.error.messages = FALSE)
+
 #################################
 
-
     if (length(names(z2)) == 0)
-    {
         z2$maxlik <- NA
-    }
     ##if (length(names(z2.heter)) == 0)
     ##{
     ##        z2.heter$maxlik <- NA
@@ -197,6 +208,7 @@ states.hmm.func <-
     ##{
     ##        z3.heter$maxlik <- NA
     ##}
+    
     if (length(names(z4)) == 0)
     {
         z4$maxlik <- NA
@@ -225,12 +237,12 @@ states.hmm.func <-
     {
         if ((aic) && (nl==1))
         {
-            ##-loglik+2*k/2
+            ##-2loglik+2*k
             factor <- 2
         }
         else if (bic)
         {
-            ##-loglik+log(n)*k*delta/2
+            ##-2loglik+2*k*log(n)*delta
             if (aic)
             {
                 factor <- log(numobs)*delta[nl-1]
@@ -241,41 +253,48 @@ states.hmm.func <-
             }
         }
 
-        lik <- c((z1+k1*factor/2),(z2$maxlik+k2*factor/2),(z3$maxlik+k3*factor/2),(z4$maxlik+k4*factor/2),(z5$maxlik+k5*factor/2))
-        likmin <- which.min(lik)
-
-        if (likmin == 1)
-        {
-            z <- z1
-            name <- "z1"
-            nstates <- 1
-        }
-        else if (likmin == 2)
-        {
-            z <- z2
-            name <- "z2"
-            nstates <- 2
-        }
-        else if (likmin == 3)
-        {
-            z <- z3
-            name <- "z3"
-            nstates <- 3
-        }
-        else if (likmin == 4)
-        {
-            z <- z4
-            name <- "z4"
-            nstates <- 4
-        }
-        else if (likmin == 5)
-        {
-            z <- z5
-            name <- "z5"
-            nstates <- 5
-        }
-
-
+        lik <-
+            c(2*z1+2*k1*factor, 2*z2$maxlik+2*k2*factor,
+              2*z3$maxlik+2*k3*factor, 2*z4$maxlik+2*k4*factor,
+              2*z5$maxlik+2*k5*factor)
+        switch(which.min(lik),
+           {
+               
+               z <- z1
+               name <- "z1"
+               nstates <- 1
+               
+           },
+           {
+               
+               z <- z2
+               name <- "z2"
+               nstates <- 2
+               
+           },
+           {
+               
+               z <- z3
+               name <- "z3"
+               nstates <- 3
+               
+           },
+           {
+               
+               z <- z4
+               name <- "z4"
+               nstates <- 4
+               
+           },
+           {
+               
+               z <- z5
+               name <- "z5"
+               nstates <- 5
+               
+           }
+               )
+        
 ######################################
         ##out rpred and state
 
@@ -292,8 +311,12 @@ states.hmm.func <-
             disp <- rep(0, length(y))
             for (m in 1:length(maxstate.unique))
             {
-                pred[maxstate==maxstate.unique[m]] <- median(y[maxstate==maxstate.unique[m]])
-                disp[maxstate==maxstate.unique[m]] <- mad(y[maxstate==maxstate.unique[m]])
+                
+                pred[maxstate==maxstate.unique[m]] <-
+                    median(y[maxstate==maxstate.unique[m]])
+                disp[maxstate==maxstate.unique[m]] <-
+                    mad(y[maxstate==maxstate.unique[m]])
+                
             }
 
             ##if (length(z$pshape) == 1)
@@ -319,14 +342,16 @@ states.hmm.func <-
             
         }
         
-        out <- cbind(matrix(maxstate, ncol=1), matrix(rpred, ncol=1), matrix(prob, ncol=1), matrix(pred, ncol=1), matrix(disp, ncol=1))
-        
+        out <-
+            cbind(matrix(maxstate, ncol=1), matrix(rpred, ncol=1),
+                  matrix(prob, ncol=1), matrix(pred, ncol=1),
+                  matrix(disp, ncol=1))
         out.all <- matrix(NA, nrow=length(kb.ord), ncol=6)
         out.all[ind.nonna,1:5] <- out
-        
         out.all[,6] <- obs.ord
         out.all <- as.data.frame(out.all)
-        dimnames(out.all)[[2]] <- c("state", "rpred", "prob", "pred", "disp", "obs")
+        dimnames(out.all)[[2]] <-
+            c("state", "rpred", "prob", "pred", "disp", "obs")
         
         
         if (nl==1)
@@ -343,18 +368,28 @@ states.hmm.func <-
         ##cloneinfo <- as.data.frame(cbind(rep(chrom, length(kb.ord)), kb.ord))
         ##dimnames(cloneinfo)[[2]] <- c("Chrom", "kb")
     }
-    list(out.list=out.all.list, nstates.list=nstates.list)
+    options(opts)
+    
+    list(out.list = out.all.list, nstates.list = nstates.list)
     
 }
 
+as.matrix.dist <- 
+    function (x)
+{
+    size <- attr(x, "Size")
+    df <- matrix(0, size, size)
+    df[row(df) > col(df)] <- x
+    df <- df + t(df)
+    labels <- attr(x, "Labels")
+    dimnames(df) <- if (is.null(labels))
+        list(1:size, 1:size)
+    else list(labels, labels)
+    df
+}
 
-
-#####################################################################
-#####################################################################
-
-
-
-
+#################################################################################
+#################################################################################
 mergeFunc <-
     function(statesres = states.bic, minDiff = .1)
 {
@@ -394,7 +429,6 @@ mergeFunc <-
             ##if more than 1 state
             if (num.states > 1)
             {
-                
                 for (m in 1:(num.states-1))
                 {
 
@@ -407,7 +441,6 @@ mergeFunc <-
 
                         pred[states ==states.uniq[s]] <- median(obs[states ==states.uniq[s]])
                         pred.states.uniq[s] <- (pred[states==states.uniq[s]])[1]
-                        
                     }
 #########
 
@@ -425,7 +458,7 @@ mergeFunc <-
                     else
                         ##if closest are close enough
                     {
-                        pred.dist.matr <- as.matrix(dst)
+                        pred.dist.matr <- as.matrix.dist(dst)
                         ##find the closest two states, in the case of the tie take the first one
                         for (s1 in 1:(nrow(pred.dist.matr)-1))
                         {
@@ -467,7 +500,6 @@ computeSD.func <-
     ##aberration
     ##2. maxState: use only those chromosomes that contain fewer than maxState
     ##states (may modify to state transitions later
-    ##maxStateChange show chromosomes with fewer than ceratin number of changes
     ##3. minClone: use only those states that contain greater than minClone
     ##observations
     ##4. maxChrom: use up to maxChrom (e.g. avoid using X and Y)
@@ -536,7 +568,6 @@ samples\n")
 #################################
 #################################
 
-
 findOutliers.func <-
     function(thres=madGenome, factor=4, statesres=states.bic)
 {
@@ -584,7 +615,7 @@ findOutliers.func <-
                     ##state is -1 : will reassign state later as well as predicted value
                     ##possibly using pam() clustering and siluette width as a measure
 
-                    ##states[k] <- -1
+					#states[k] <- -1
 #####NO longer do this ####################################################
                 }
             }
@@ -605,13 +636,6 @@ findOutliers.func <-
             
             pred.obs.out[chrom==j, i][ind.nonna] <- pred.obs
             pred.out[chrom==j, i][ind.nonna] <- pred
-
-###############assign missing:
-            outlier[chrom==j, i][-ind.nonna] <- NA
-            pred.obs.out[chrom==j, i][-ind.nonna] <- NA
-            pred.out[chrom==j, i][-ind.nonna] <- NA
-            
-            
         }
     }
     list(outlier=outlier, pred.obs.out=pred.obs.out, pred.out=pred.out)
@@ -646,7 +670,7 @@ findAber.func <-
             {
                 if (states[m-1] != states[m])
                 {
-                    ##first clone is different from 2nd -> it's aberration	
+                    ##first clone is different from 2nd <- it's aberration	
                     if (m == 2)
                     {
                         abernow[1] <- 1
@@ -657,7 +681,7 @@ findAber.func <-
                         abernow[1:2] <- 1
                     }
                     
-                    ##last clone is different from previous -> it's aberration	
+                    ##last clone is different from previous <- it's aberration	
                     ##the clones before last may be an aberration as well
                     if (m == length(states))
                     {
@@ -666,7 +690,7 @@ findAber.func <-
                         
                     }
 
-                    ##clone before last is different from previous -> it's aberration	
+                    ##clone before last is different from previous <- it's aberration	
                     if (m == (length(states)-1))
                     {
                         
@@ -692,7 +716,6 @@ findAber.func <-
                 }
             }
             aber[chrom==j, i][ind.nonna] <- abernow
-            aber[chrom==j, i][-ind.nonna] <- NA
         }
     }
     list(aber=aber)
@@ -702,7 +725,8 @@ findAber.func <-
 #################################
 
 findTrans.func <-
-    function(outliers=res1$outliers, aber=res2$aber, statesres=states.bic)
+    function(outliers=res1$outliers, aber=res2$aber,
+             statesres=states.bic)
 {
 
     ##exclude aberrations but keep outliers in
@@ -716,14 +740,15 @@ findTrans.func <-
 
     ##lenght of the corresponding stretch matrix: 0 for aberrations and outliers
 
-    translen.matrix <- matrix(0, nrow=length(chrom), ncol=length(sq.state))
+    translen.matrix <- matrix(NA, nrow=length(chrom), ncol=length(sq.state))
 
     for (i in 1:length(sq.state))
     {
 ###        print(i)
         for (j in 1:length(unique(chrom)))
         {
-            ind.nonna <- (1:length(statesres[chrom==j, sq.obs[i]]))[!is.na(statesres[chrom==j, sq.obs[i]])]
+            ind.nonna <-
+                (1:length(statesres[chrom==j, sq.obs[i]]))[!is.na(statesres[chrom==j, sq.obs[i]])]
             kbnow <- kb[chrom==j][ind.nonna]
             states <- statesres[chrom==j, sq.state[i]][ind.nonna]
             outliersnow <- outliers[chrom==j,i][ind.nonna]
@@ -766,9 +791,6 @@ findTrans.func <-
 
             transnow[abernow==1] <- 3
             trans.matrix[chrom==j,i][ind.nonna] <- transnow
-
-            trans.matrix[chrom==j, i][-ind.nonna] <- NA
-            translen.matrix[chrom==j, i][-ind.nonna] <- NA
             
         }
     }
@@ -780,7 +802,12 @@ findTrans.func <-
 #################################
 
 findAmplif.func <-
-    function(absValSingle = 1, absValRegion = 1.5, diffVal1=1, diffVal2 = .5, maxSize =  10000, translen.matr = res3$translen.matrix, trans.matr = res3$trans.matr, aber = res2$aber, outliers= res1$outlier, pred = res1$pred.out, pred.obs = res1$pred.obs.out, statesres=states.bic)
+    function(absValSingle = 1, absValRegion = 1.5, diffVal1=1,
+             diffVal2 = .5, maxSize =  10000, translen.matr =
+             res3$translen.matrix, trans.matr = res3$trans.matr, aber
+             = res2$aber, outliers= res1$outlier, pred =
+             res1$pred.out, pred.obs = res1$pred.obs.out,
+             statesres=states.bic)
 {
     chrom <- statesres[,1]
     kb <- statesres[,2]
@@ -836,19 +863,13 @@ findAmplif.func <-
                 indstretch <- (1:length(amplifnow))[abernow==0 & outliersnow==0]
                 for (m in 1:length(indaber))
                 {
-                    stretchleft <-
-                        max(0,
-                            max(indstretch[indstretch < indaber[m]]),
-                            na.rm = TRUE)
-                    stretchright <-
-                        min((length(amplifnow)+1),
-                            min(indstretch[indstretch > indaber[m]]),
-                            na.rm = TRUE)
+                    stretchleft <- max(0, max(indstretch[indstretch < indaber[m]]), na.rm = TRUE)
+                    stretchright <- min((length(amplifnow)+1), min(indstretch[indstretch > indaber[m]]), na.rm = TRUE)
                     ##if no stretches to the left
                     if (stretchleft == 0)
                     {
                         mx <- prednow[stretchright]
-                    } #if no stretches to the right:
+                    } ##if no stretches to the right:
                     else if (stretchright == (length(amplifnow)+1))
                     {
                         mx <- prednow[stretchleft]
@@ -866,6 +887,8 @@ findAmplif.func <-
                     }
                 }	
             }			
+            
+            
 
             ##if part of the stretch and observed value of > absValRegion and 
             ##NOT YET: larger by diffValRegion than max of the surrounding regions regions and 
@@ -874,12 +897,10 @@ findAmplif.func <-
             amplifnow[abernow==0 & outliersnow ==0 & obsnow >= absValRegion & translennow <= maxSize] <- 1
             
             amplif.matrix[chrom==j,i][ind.nonna] <- amplifnow
-            amplif.matrix[chrom==j, i][-ind.nonna] <- NA
+            
         }
     }
-    
     list(amplif = amplif.matrix)
-    
 }
 
 
@@ -887,15 +908,14 @@ findAmplif.func <-
 ######################################
 
 plotChrom.hmm.func <-
-    function(sample, chr,  statesres=states.bic, amplif = res4$amplif,
+    function(sample, chr, statesres=states.bic, amplif = res4$amplif,
              aber=res2$aber, outliers = res1$outlier, trans =
              res3$trans.matr, pred = res1$pred.out,  yScale = c(-2,2),
-             maxChrom=23, chrominfo=chrominfo, samplenames, namePSfile
-             = "try.ps", ps = TRUE, plotend = TRUE
-             )
+             maxChrom=23, chrominfo = human.chrom.info.Jul03,
+             samplenames, namePSfile = "try.ps", ps = TRUE, plotend = TRUE)
 {
 
-    chrom.rat <- chrominfo$length/max(chrominfo$length)
+    chrom.rat <- chrominfo$length / max(chrominfo$length)
     chrom.start <- rep(0, maxChrom)
     for (i in 2:length(chrom.start))
     {
@@ -937,7 +957,8 @@ plotChrom.hmm.func <-
     for (j in 1:length(chr))
     {
 
-        ind.nonna <- (1:length(statesres[chrom==chr[j], sq.obs[sample]]))[!is.na(statesres[chrom==chr[j], sq.obs[sample]])]
+        ind.nonna <-
+            which(!is.na(statesres[chrom==chr[j], sq.obs[sample]]))
 
         kb <- (statesres[chrom==chr[j],2][ind.nonna])/1000
         obs <- statesres[chrom==chr[j], sq.obs[sample]][ind.nonna]
@@ -951,7 +972,9 @@ plotChrom.hmm.func <-
 
         ##predicted values when non-aberration of outlier: otherwise observed
         prednow <- obs
-        prednow[outliersnow == 0 & abernow==0] <- (pred[chrom==chr[j],sample][ind.nonna])[outliersnow == 0 & abernow==0]
+        prednow[outliersnow == 0 & abernow==0] <-
+            (pred[chrom==chr[j],sample][ind.nonna])[outliersnow == 0 &
+                  abernow==0]
 
         y.min <- min(yScale[1], min(obs))
         y.max <- max(yScale[2], max(obs))
@@ -976,7 +999,7 @@ plotChrom.hmm.func <-
 
 ###########
         ##amplif = red
-        ##aber = green
+        ##aber = orange
         ##outliers = yellow
 
 
@@ -986,8 +1009,7 @@ plotChrom.hmm.func <-
         }
         if (length(abernow[abernow ==1]) > 0)
         {
-            
-            points(kb[abernow ==1], obs[abernow ==1], col="green")
+            points(kb[abernow ==1], obs[abernow ==1], col="orange")
         }
         if (length(amplifnow[amplifnow ==1]) > 0)
         {
@@ -1016,7 +1038,7 @@ plotChrom.hmm.func <-
 
 ###########
         ##amplif = red
-        ##aber = green
+        ##aber = orange
         ##outliers = yellow
 
 
@@ -1026,8 +1048,7 @@ plotChrom.hmm.func <-
         }
         if (length(abernow[abernow ==1]) > 0)
         {
-            
-            points(kb[abernow ==1], obs[abernow ==1], col="green")
+            points(kb[abernow ==1], obs[abernow ==1], col="orange")
         }
         if (length(amplifnow[amplifnow ==1]) > 0)
         {
@@ -1141,7 +1162,7 @@ plotCGH.hmm.func <-
 #########################
     ##start a postscript file
 
-    postscript(namePSfile, paper="letter", horizontal = FALSE)
+    postscript(namePSfile, paper="letter", horizontal=FALSE)
     ##just a safety line
     close.screen(all = TRUE)
     ##"inch" factor for to determine size of the plot in inches (for "pin" parameter)
@@ -1283,78 +1304,78 @@ plotCGH.hmm.func <-
 ##################################
 ##FIX missing values further down
 
-##smoothData.func <-
-##    function(statesres = states.bic, aber = res2$aber,
-##             outliers = res1$outlier)
-##{
-##    sq.obs <- seq(8, ncol(statesres), b=6)
-##    data.smooth <- pred
-##    for (i in 1:length(sq.obs))
-##    {
-##        obs <- states.bic[,sq.obs[i]]
-##        if (length(aber[,i][aber[,i] ==1]) >0)
-##        {
-##            data.smooth[aber[,i]==1,i] <- obs[aber[,i]==1]
-##        }
-##        if (length(outliers[,i][outliers[,i] ==1]) >0)
-##        {
-##            data.smooth[outliers[,i]==1,i] <- obs[outliers[,i]==1]
-##        }
-##    }
-##    list(data.smooth = data.smooth)
+smoothData.func <-
+    function(statesres=states.bic, aber=res2$aber, outliers =
+             res1$outlier)
+{
+    sq.obs <- seq(8, ncol(statesres), b=6)
+    data.smooth <- pred
+    for (i in 1:length(sq.obs))
+    {
+        obs <- states.bic[,sq.obs[i]]
+        if (length(aber[,i][aber[,i] ==1]) >0)
+        {
+            data.smooth[aber[,i]==1,i] <- obs[aber[,i]==1]
+        }
+        if (length(outliers[,i][outliers[,i] ==1]) >0)
+        {
+            data.smooth[outliers[,i]==1,i] <- obs[outliers[,i]==1]
+        }
+    }
+    list(data.smooth = data.smooth)
     
     
 
-##}
+}
 ##################################
 ##################################
 ##################################
 ##################################
 
-##thresholdData.func <-
-##    function(statesres = states.bic, amplif = res4$amplif,
-##             aber = res2$aber, outliers = res1$outlier,
-##             pred = res1$pred.out, noise = madGenome, factor = 2.5,
-##             minMed = .1, thresSingle = FALSE)
-##{
+thresholdData.func <-
+    function(statesres=states.bic, amplif = res4$amplif,
+             aber=res2$aber, outliers = res1$outlier, pred =
+             res1$pred.out, noise = madGenome, factor=2.5, minMed =
+             .1, thresSingle=FALSE)
+{
     
-##    thres <- noise*factor	
+    thres <- noise*factor	
 
-##    if (length(minMed) ==1)
-##    {
-##        minMed <- rep(minMed, length(thres))
-##    }
+    if (length(minMed) ==1)
+    {
+        minMed <- rep(minMed, length(thres))
+    }
 
-##    sq.obs <- seq(8, ncol(statesres), b=6)
-##    data.thres <- matrix(0, nrow=nrow(pred), ncol=ncol(pred))
-##    for (i in 1:length(sq.obs))
-##    {
-##        obs <- states.bic[,sq.obs[i]]
-##        if (thresSingle)
-##        {
-##            ##if use individual thresholds for each clone
+    sq.obs <- seq(8, ncol(statesres), b=6)
+    data.thres <- matrix(0, nrow=nrow(pred), ncol=ncol(pred))
+    for (i in 1:length(sq.obs))
+    {
+        obs <- states.bic[,sq.obs[i]]
+        if (thresSingle)
+        {
+            ##if use individual thresholds for each clone
             
-##            data.thres[obs >= thres.i] <- 1
-##            data.thres[obs <= -thres,i] <- -1
+            data.thres[obs >= thres.i] <- 1
+            data.thres[obs <= -thres,i] <- -1
             
-##        }
-##        else
-##        {
-##            ##use individual thresholds for outliers and aberrations only
-##            data.thres[(aber[,i]==1 | outliers[,i]==1) & obs >= thres ,i] <- 1
-##            data.thres[(aber[,i]==1 | outliers[,i]==1) & obs <= -thres,i ] <- -1
-##            data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] >=  minMed[i] ,i] <- 1
-##            data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] <= -minMed[i] ,i] <- -1
+        }
+        else
+        {
+            ##use individual thresholds for outliers and aberrations only
+            data.thres[(aber[,i]==1 | outliers[,i]==1) & obs >= thres ,i] <- 1
+            data.thres[(aber[,i]==1 | outliers[,i]==1) & obs <= -thres,i ] <- -1
+            data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] >=  minMed[i] ,i] <- 1
+            data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] <= -minMed[i] ,i] <- -1
             
             
-##        }
+        }
         
-##    }
-##    list(data.thres = data.thres)
+    }
+    list(data.thres = data.thres)
     
     
 
-##}
+}
 ##################################
 ##################################
 

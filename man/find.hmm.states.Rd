@@ -18,7 +18,7 @@
 }
 \usage{
 hmm.run.func(dat, datainfo = clones.info, vr = 0.01, maxiter = 100,
-             aic = FALSE, bic = TRUE, delta = NA)
+             aic = TRUE, bic = TRUE, delta = 1)
 find.hmm.states(aCGH.obj, ...)
 }
 %- maybe also `usage' for other objects documented here.
@@ -34,10 +34,10 @@ find.hmm.states(aCGH.obj, ...)
   \item{maxiter}{Maximum number of iterations}
   \item{aic}{TRUE or FALSE variable indicating whether or nor AIC
     criterion should be used for model selection (see DETAILS)}
-  \item{bic}{TRUE or FALSE variable indicating whether or nor BIC
+  \item{bic}{TRUE or FALSE variable indicating whether or nor AIC
     criterion should be used for model selection (see DETAILS)}
   \item{delta}{numeric vector of penalty factors to use with BIC
-    criterion. If BIC is true, delta=1 is always calculated (see DETAILS)}
+    criterion (see DETAILS)}
   \item{...}{
     All the parameters that can be passed to hmm.run.func except dat and
     datainfo.
@@ -48,23 +48,18 @@ find.hmm.states(aCGH.obj, ...)
   states on each chromosomes. If several are specified, then a separate
   matrix is produced for each criterion used. Delta is a fudge factor in
   BIC criterion: $\delta BIC(\gamma) = \log RSS(\gamma) +
-  q_{\gamma}\delta\log n/n.$ Note that delta = NA leads to conventional
-  BIC. (Broman KW, Speed TP (2002) A model selection approach for the
-  identification of quantitative trait loci in experimental crosses
-  (with discussion). J Roy Stat Soc B 64:641-656, 731-775 )
-
+  q_{\gamma}\delta\log n/n.$ Note that delta = 1 leads to conventional
+  BIC.
   find.hmm.states(aCGH.obj, ...) uses aCGH object instead of log2 ratios
-  matrix dat. Equivalent representation (assuming normally distributed
-  residuals) is to write -loglik(gamma) = n/2*log(RSS)(gamma) and then
-  bic= -loglik+log(n)*k*delta/2 and aic = -loglik+2*k/2
+  matrix dat.
 }
 \value{
   Two lists of lists are returned. Each list contains information on the
   states with each of the specified model selection criteria. E.g., if
-  AIC = T, BIC = T and delta = c(1.5), then each list will contain
+  AIC = T, BIC = T and delta = c(1,1.5), then each list will contain
   three lists corresponding to AIC, BIC(1) and BIC(1.5) as the 1st,2nd
-  and 3rd lists repsectively. If AIC is used, it always comes first
-  followed by BIC and then deltaBIC in the order of delta vector.
+  and 3rd lists repsectively. If AIC is used, it always comes first and
+  BIC models come in the order of the delta vector.
   \item{states.hmm}{Each of the sublists contains 2+ 6*n columns where
     the first two columns contain chromosome and kb positions for each
     clone in the dataset supplied followed up by 6 columns for each
@@ -101,10 +96,9 @@ datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
       file.path(datadir, "human.clones.info.Jul03.csv")
 ex.acgh <-
-    aCGH.read.Sprocs(dir(path = datadir,
-                     pattern = paste("*", "txt", sep = "\."),
-                     full.names = TRUE), latest.mapping.file,
-                     chrom.remove.threshold = 23)
+    aCGH.read.Sprocs(system(paste("ls -1", file.path(datadir,
+                    "*.txt")), intern = TRUE), latest.mapping.file,
+                    chrom.remove.threshold = 23)
 ex.acgh
 
 hmm(ex.acgh) <- find.hmm.states(ex.acgh, aic = TRUE, delta = 1.5)

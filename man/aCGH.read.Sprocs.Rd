@@ -62,13 +62,12 @@ datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
       file.path(datadir, "human.clones.info.Jul03.csv")
 ex.acgh <-
-    aCGH.read.Sprocs(dir(path = datadir,
-                     pattern = paste("*", "txt", sep = "\."),
-                     full.names = TRUE), latest.mapping.file,
-                     chrom.remove.threshold = 23)
+    aCGH.read.Sprocs(system(paste("ls -1", file.path(datadir,
+                    "*.txt")), intern = TRUE), latest.mapping.file,
+                    chrom.remove.threshold = 23)
 ex.acgh
 
-## Testing if creating the object went right. Should all be true.
+## Testing if creating the object went right. Should all be true
 
 all(log2.ratios(ex.acgh)[ 1, ] == c(-0.077698 , 0.007389))
 clone.name <- "RP11-88I12"

@@ -1,10 +1,7 @@
-
 if(dev.cur() <= 1) get(getOption("device"))()
 
-opar <-
-    par(ask = interactive() &&
-        (.Device %in% c("X11", "GTK", "windows","quartz"))
-        )
+opar <- par(ask = interactive() &&
+            (.Device %in% c("X11", "GTK", "windows","quartz")))
 
 ## Reading Sproc files
 
@@ -12,10 +9,9 @@ datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
       file.path(datadir, "human.clones.info.Jul03.csv")
 ex.acgh <-
-    aCGH.read.Sprocs(dir(path = datadir,
-                     pattern = paste("*", "txt", sep = "\."),
-                     full.names = TRUE), latest.mapping.file,
-                     chrom.remove.threshold = 23)
+    aCGH.read.Sprocs(system(paste("ls -1", file.path(datadir,
+                    "*.txt")), intern = TRUE), latest.mapping.file,
+                    chrom.remove.threshold = 23)
 ex.acgh
 
 ## Load the colorectal example

@@ -314,23 +314,15 @@ plotFreqStatGrey <-
     plotfreq.stat(aCGH.batch, resT, pheno, colored = FALSE, ...)
 
 plotFreqStat <-
-    function(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
-             chrominfo = human.chrom.info.Jul03,
-             X = TRUE, Y = FALSE, threshold = TRUE, minChanged = 0,
-             rsp.uniq = unique(pheno),
-             all = length(rsp.uniq) == 1 && is.null(resT),
-             nlim = 1, titles = if (all) "All Samples" else rsp.uniq,
-             cutplot = 0, thres = .2, ylm = c(-1, 1), ngrid = 2,
-             p.thres = c(.01, .05, .1), mincolors = .1,
-             quant.col = .11, numaut = 22, onepage = TRUE,
-             colored = TRUE, summarize.clones = TRUE
-             )
+    function(aCGH.obj, resT, pheno, chrominfo = human.chrom.info.Jul03,
+             X = TRUE, Y = FALSE, threshold = TRUE, minChanged = 0, all = FALSE,
+             rsp.uniq = unique(pheno), nlim = 1, cutplot = 0,
+             titles = rsp.uniq, thres = .2, ylm = c(-1, 1),
+             ngrid = 2, p.thres = c(.01, .05, .1), mincolors = .1,
+             quant.col = .11, numaut = 22, onepage = TRUE, colored = TRUE,
+             summarize.clones = TRUE)
 {
 
-###    if (is.null(resT) && length(rsp.uniq) == FALSE)
-###        stop("Please specify either test statistics or that all\
-### samples are from one group(all = T)\n")
-    
     col.scheme <- 
         if (colored)
             list(pal =
@@ -368,21 +360,16 @@ plotFreqStat <-
     rsp.uniq <- sort(rsp.uniq)
     
     ## creating response matrix colmatr
-    
-    colmatr <-
-        if (length(rsp.uniq) > 1)
+
+    if (!all)
+	colmatr <-
             t(
               sapply(rsp.uniq,
                      function(rsp.uniq.level)
                      ifelse(pheno == rsp.uniq.level, 1, 0)
                      )
               )
-        else
-            matrix(rep(1, length(pheno)),
-                   ncol = length(pheno),
-                   nrow = 1
-                   )
-    
+
     ## screening out clones that are gained or lost in < minChanged in
     ## classes under comparison
     ## indeces present:
@@ -403,6 +390,8 @@ plotFreqStat <-
 
     ## start table:
     if (summarize.clones)
+        bac.summary <-
+            table.bac.func(dat = data.thres, colMatr = colmatr)
 
     ## creating color matrix for displaying intensity of gains and losses
     ## and for plotting p-values
@@ -432,8 +421,11 @@ plotFreqStat <-
     nr <- nrow(colmatr)
     
     ## if 1 class only, no significance analysis:
-    if (!all)
-        nr <- nr + 1
+###    if (nrow(colmatr) == 1)
+###        sign <- F
+###    if (sign)
+###        nr <- nr + 1
+    nr <- nr + 1
     
     tmp <- as.data.frame(matrix(0, ncol = 2, nrow = 1))
     colnames(tmp) <- c("gainP", "lossP")
@@ -441,23 +433,46 @@ plotFreqStat <-
         lapply(1:nrow(colmatr),
                function(j)
                gainloss.func(dat = data,
-                             cols = which(colmatr[j, ] == 1),
+                             cols = which(colmatr[ j, ] == 1),
                              thres = thres,
                              quant = quant.col)
                )
-    dt <- dataSign[ ,colmatr[ 1, ] == 1, drop = FALSE ]
+    dt <- dataSign[ ,colmatr[1,] == 1, drop = FALSE ]
     rsp <- rep(1, ncol(dt))
-    if (nrow(colmatr) > 1)
-        for (j in 2:nrow(colmatr))
-        {
-            
-            dt <- cbind(dt, dataSign[ ,colmatr[ j, ] == 1 ])
-            rsp <- c(rsp, rep(j, sum(colmatr[ j, ] == 1)))
-            
-        }
+    for (j in 2:nrow(colmatr))
+    {
+        
+        dt <- cbind(dt, dataSign[ ,colmatr[ j, ] == 1 ])
+        rsp <- c(rsp, rep(j, sum(colmatr[ j, ] == 1)))
+        
+    }
     rsp <- rsp - 1
+
+    ## Process statistics
+    ## for plotting test stats and p-values
+
+    res <- resT[clones.index,]
+    maxT <- res$adjp[order(res$index)]
+    
+    teststat <- abs(res$teststat[order(res$index)])
+    st.now <-
+        sapply(p.thres,
+               function(threshold) {
+                   
+                   if (any(maxT <= threshold))
+                       min(teststat[maxT <= threshold])
+                   else
+                       NA
+                   
+               }
+               )
     pal.now <- col.scheme$pal
 
+    ##append to bac summary file
+    if (summarize.clones)
+        bac.summary <-
+            cbind(bac.summary, res$rawp[order(res$index)], maxT)
+    
     ##Now preparing for plotting:
 
     numchr <- numaut
@@ -565,37 +580,14 @@ plotFreqStat <-
                       line = .3, col = col.scheme$mtext, cex.main = .5)
         
     }
-    if (!all)
-    {
-        
-        ## Process statistics
-        ## for plotting test stats and p-values
-        
-        res <- resT[clones.index,]
-        maxT <- res$adjp[order(res$index)]
-        
-        teststat <- abs(res$teststat[order(res$index)])
-        st.now <-
-            sapply(p.thres,
-                   function(threshold) {
-                       
-                       if (any(maxT <= threshold))
-                           min(teststat[maxT <= threshold])
-                       else
-                           NA
-                       
-                   }
-                   )
-        plot(kb.loc, teststat, col = col.scheme$kb.loc,
-             ylim = c(0, max(teststat)), type = "h",
-             xlab = "chromosome number", ylab = "clone statistic",
-             pch = 18, main = paste(titles, collapse = " vs "),
-             xlim = c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE))
-             )
-        if (length(st.now) > 0)
-            abline(h = rev(st.now), col = rev(pal.now), lty = 2)
-
-    }
+    plot(kb.loc, teststat, col = col.scheme$kb.loc,
+         ylim = c(0, max(teststat)), type = "h",
+         xlab = "chromosome number", ylab = "clone statistic",
+         pch = 18, main = paste(titles, collapse = " vs "),
+         xlim = c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE))
+         )
+    if (length(st.now) > 0)
+        abline(h = rev(st.now), col = rev(pal.now), lty = 2)
     abline(v = cumsum(chrominfo$length), col = col.scheme$abline3)
     abline(v = chrom.centr, lty = 2, col = col.scheme$abline4)
 
@@ -620,15 +612,9 @@ plotFreqStat <-
             mtext("Y", side = 1, at = chrom.mid[numaut + 2],
                   line = .3, col = col.scheme$mtext, cex.main = .5)
 
-    ##append to bac summary file
     if (summarize.clones)
     {
         
-        bac.summary <-
-            table.bac.func(dat = data.thres, colMatr = colmatr)
-        if (!all)
-            bac.summary <-
-                cbind(bac.summary, res$rawp[order(res$index)], maxT)
         bac.summary <- as.data.frame(bac.summary)
         nms <-
             c("NumPresent", "NumGain", "NumLost", "PropPresent",
@@ -639,11 +625,12 @@ plotFreqStat <-
             for (m in 1:length(rsp.uniq))
                 cnames[ (6 * m + 1):(6 * (m + 1)) ] <-
                     paste(nms, rsp.uniq[m], sep = ".")
-        if (!all)
-            cnames[(ncol(bac.summary)-1):ncol(bac.summary)] <-
-                c("rawp", "adjp.maxT")
+        cnames[(ncol(bac.summary)-1):ncol(bac.summary)] <-
+            c("rawp", "adjp.maxT")
         colnames(bac.summary) <- cnames
-        bac.summary <- cbind(datainfo, bac.summary)
+        bac.summary <- cbind(datainfo, bac.summary)	
+###    write.table(bac.summary, filetable, col.names = TRUE, row.names = FALSE,
+###                sep = "\t", quote = FALSE)
         invisible(bac.summary)
         
     }
