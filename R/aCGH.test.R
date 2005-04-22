@@ -121,45 +121,69 @@ aCGH.test <- function(aCGH.obj, rsp, test = c("survdiff", "coxph", "linear.regre
 
 
 
-threshold.func <-
-    function(dat, thresAbs)
+threshold.func <- function(dat, posThres, negThres=NULL)
 {
-    
-    out <- matrix(0, nrow = nrow(dat), ncol = ncol(dat))
-    ##if the same threshold for all samples
-    if (length(thresAbs) == 1)
-        thresAbs <- rep(thresAbs, ncol(dat))
-    if (length(thresAbs) != ncol(dat))
-        stop("Error: number of threshold is not the same as number of\
-samples")
-##    for (i in 1:ncol(dat))
-##    {
-##        tmp <- dat[,i]
-##        tmp[dat[,i] >=thresAbs[i] & !is.na(dat[,i])] <- 1
-##        tmp[dat[,i] <=-thresAbs[i] & !is.na(dat[,i])] <- -1
-##        tmp[dat[,i] > -thresAbs[i] & dat[,i] < thresAbs[i] & !is.na(dat[,i])] <- 0
-        
-##        out[,i] <- tmp
-##    }
-##    out
-    sapply(1:ncol(dat),
-           function(i) {
+	if (is.null(negThres))
+		negThres <- -posThres
+	##if the same threshold for all samples
+	if ((length(posThres) == 1) & (length(negThres) == 1)) {
+		posThres <- rep(posThres, ncol(dat))
+		negThres <- rep(negThres, ncol(dat))
+	}
+	if ((length(posThres) != ncol(dat)) | (length(negThres) != ncol(dat)))
+		stop("Error: number of thresholds is not the same as number of samples")
+	sapply(1:ncol(dat),
+		function(i) {
+			tmp <- rep(NA, nrow(dat))
+			na.col <- is.na(dat[ ,i ])
+			col <- dat[ ,i ][!na.col]
+			tmp[!na.col] <-
+				ifelse(col >= posThres[i], 1,
+					ifelse(col <= negThres[i], -1,
+									0))
+			tmp
                
-               tmp <- rep(NA, nrow(dat))
-               na.col <- is.na(dat[ ,i ])
-               col <- dat[ ,i ][!na.col]
-               tmp[!na.col] <-
-                   ifelse(col >= thresAbs[i],
-                          1,
-                          ifelse(col <= -thresAbs[i], -1, 0)
-                          )
-               
-               tmp
-               
-           }
-           )
-    
+		}
+	)
 }
+
+
+fga.func <-	function(aCGH.obj, thres=0.25, factor=2.5, samplenames = sample.names(aCGH.obj), chrominfo=human.chrom.info.Jul03) {
+	#check if sd.samples are non-empty:
+	if (!is.null(sd.samples(aCGH.obj))) {
+		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
+	}
+    
+	data <- log2.ratios(aCGH.obj)
+	data.thres <- threshold.func(data, posThres=thres)
+	datainfo <- clones.info(aCGH.obj)
+	ord <- order(datainfo$Chrom,datainfo$kb)
+	datainfo <- datainfo[ord,]
+
+	nClones <- nrow(datainfo)
+	prevChrom <- 0
+	cloneLens <- rep(0,nClones)
+	for (i in 1:nClones) {
+		nextChrom <- datainfo$Chrom[i+1]
+		if (i==nClones) nextChrom <- 9999
+		startPos <- ifelse(datainfo$Chrom[i]==prevChrom,sum(datainfo$kb[i-1],datainfo$kb[i])/2,0)
+		endPos <- ifelse(datainfo$Chrom[i]==nextChrom,
+					sum(datainfo$kb[i],datainfo$kb[i+1])/2,
+					chrominfo$length[datainfo$Chrom[i]])
+		cloneLens[i] <- endPos-startPos
+		prevChrom <- datainfo$Chrom[i]
+	}
+	cloneLens <- cloneLens[order(ord)]
+	loss <- gain <- rep(0, ncol(aCGH.obj))
+	for (i in 1:ncol(aCGH.obj)) {
+		clones.ind.na <- which(!is.na(data.thres[,i]))
+		totCloneLens <- sum(cloneLens[clones.ind.na], na.rm = TRUE)
+		gain[i] <- sum(cloneLens[data.thres[clones.ind.na,i]==1], na.rm = TRUE)/totCloneLens #proportion gained
+		loss[i] <- sum(cloneLens[data.thres[clones.ind.na,i]==-1], na.rm = TRUE)/totCloneLens #proportion lost
+	}
+	list(gainP = gain, lossP = loss)
+}
+
 
 changeProp.func <-
     function(dat = data.screen.norm.thres, colMatr)
@@ -604,7 +628,8 @@ summarize.clones <-
                    nrow = 1
                    )
 
-	data.thres <- threshold.func(data, thresAbs = thres)
+	#data.thres <- threshold.func(data, thresAbs = thres)
+	data.thres <- threshold.func(data, posThres = thres)
 
 ####NOT ANYMORE
     #tmp <- apply(as.matrix(colmatr), 2, sum)

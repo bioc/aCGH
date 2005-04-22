@@ -42,11 +42,9 @@ sex.na <- !is.na(sex)
 colorectal.na <- colorectal[ ,sex.na, keep = TRUE ]
 factor <- 2.5
 minChanged <- 0.1
-#gainloss <- gainLoss(log2.ratios(colorectal.na), cols=1:length(sex.na), thres=sd.samples(colorectal.na)*factor)
 gainloss <- gainLoss(log2.ratios(colorectal.na), cols=1:ncol(colorectal.na), thres=factor*sd.samples(colorectal.na)$madGenome)
 ind.clones.use <- which(gainloss$gainP >= minChanged | gainloss$lossP>= minChanged)
 #create filtered dataset
-#colorectal.na <- colorectal.na[ind.clones.use,,drop=FALSE]
 colorectal.na <- colorectal.na[ind.clones.use,keep=TRUE]
 dat <- log2.ratios.imputed(colorectal.na)
 resT.sex <- mt.maxT(dat, sex[sex.na],test = "t.equalvar", B = 1000)

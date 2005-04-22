@@ -12,10 +12,9 @@ datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
       file.path(datadir, "human.clones.info.Jul03.txt")
 ex.acgh <-
-    aCGH.read.Sprocs(dir(path = datadir,
-                     pattern = paste("*", "txt", sep = "\."),
-                     full.names = TRUE), latest.mapping.file,
-                     chrom.remove.threshold = 23)
+	aCGH.read.Sprocs(dir(path = datadir,pattern = "sproc",
+			full.names = TRUE), latest.mapping.file,
+			chrom.remove.threshold = 23)
 ex.acgh
 
 ## Load the colorectal example
@@ -44,6 +43,7 @@ dev.off()
 #cluster all samples using imputed data on all chromosomes (autosomes
 ## and X):
 
+par(mfrow = c(1, 1))
 clusterGenome(colorectal, dendPlot = FALSE)
 
 ## Plotting the hmm states

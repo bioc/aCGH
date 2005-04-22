@@ -1,6 +1,6 @@
 \name{plotFreqStat}
 \alias{plotFreqStat}
-\alias{threshold.func}
+%- \alias{threshold.func}
 \alias{changeProp.func}
 \alias{changeProp.overall.func}
 \alias{table.bac.func}

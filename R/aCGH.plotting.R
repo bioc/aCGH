@@ -111,15 +111,13 @@ plotGenome <-
     
 }
 
-###############################
-
 plotSummaryProfile <-
     function(aCGH.obj,
              response = as.factor(rep("All", ncol(aCGH.obj))),
              titles = unique(response[!is.na(response)]), X = TRUE,
              Y = FALSE, maxChrom = 23,
              chrominfo = human.chrom.info.Jul03,
-             num.plots.per.page = length(titles))
+             num.plots.per.page = length(titles), factor = 2.5, posThres=100, negThres=-0.75)
 {
 
     if (is.null(genomic.events(aCGH.obj)))
@@ -173,6 +171,8 @@ find.genomic.events")
                    )[ which(!is.na(response)), ]
     attach(df.not.na)
     numchromchange <- numchromgain + numchromloss
+
+    deletions <- threshold.func(log2.ratios(aCGH.obj),posThres=posThres,negThres=negThres)
     
     boxplot.this <-
         function(events, title, sig = 6)
@@ -185,7 +185,7 @@ find.genomic.events")
                 else
                     ""
             boxplot(events ~ resp.na, notch = TRUE, names = titles,
-                    varwidth = TRUE, main = paste(title, p.value))
+                    varwidth = TRUE, main = paste(title, p.value), cex.main=0.8)
             
         }
 
@@ -207,6 +207,15 @@ find.genomic.events")
                  "Number of Chrom containing Amplifications")
     boxplot.this(numamplicon, "Number of Amplicons")
     boxplot.this(sizeamplicon, "Amount of Genome Amplified")
+
+#############################################
+    ##Plot3:
+
+    out <- as.data.frame(fga.func(aCGH.obj, factor=factor,
+        chrominfo=chrominfo))[ which(!is.na(response)), ]
+    boxplot.this(out$gainP, "Fraction of Genome Gained")
+    boxplot.this(out$lossP, "Fraction of Genome Lost")
+    boxplot.this(out$gainP+out$lossP, "Fraction of Genome Altered")
 
 #############################################
 
@@ -258,6 +267,11 @@ find.genomic.events")
                    "Proportion of Aberrations")
     mtext("Aberrations", side = 3, outer = TRUE)
 
+    ##Plot8: homozygous deletions
+    plot.freq.this(deletions, -1,
+                  "Proportion of Homozygous Deletions")
+    mtext("Homozygous Deletions", side = 3, outer = TRUE)
+
     ##Plot7: whole chromosomal gain/loss:
 
     par(mfrow = c(num.plots.per.page, 2), lab = c(5,6,7))
@@ -293,9 +307,11 @@ find.genomic.events")
              ylim = c(0, mx), xlim = c(0,23))
         
     }
+
     detach(df.not.na)
 
 }	
+
 
 plotHmmStates <-
     function(aCGH.obj, sample.ind, chr = 1:num.chromosomes(aCGH.obj),

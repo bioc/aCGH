@@ -126,8 +126,7 @@ datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
 	file.path(datadir, "human.clones.info.Jul03.txt")
 ex.acgh <-
-	aCGH.read.Sprocs(dir(path = datadir,
-			pattern = paste("*", "*sproc*", sep = "\."),
+	aCGH.read.Sprocs(dir(path = datadir,pattern = "sproc",
 			full.names = TRUE), latest.mapping.file,
 			chrom.remove.threshold = 23)
 ex.acgh
@@ -225,9 +224,10 @@ plotHmmStates(colorectal, sample.ind = 1, chr = 1)
 \pagebreak
 
 \subsection{Plotting summary of the tumor
-profiles(fig. \ref{cap:Plotting-summary-tumor-profiles})}
+profiles}
+% (fig. \ref{cap:Plotting-summary-tumor-profiles})}
 Here the distribution of various genomic events as well as their
-frequency by location is displayed. Run the function plotSummaryProfile(colorectal) which produces multi-page figure. Necessary to write out as ps or pdf files. 
+frequency by location is displayed. Run the function plotSummaryProfile(colorectal) which produces multi-page figure. Necessary to write out as ps or pdf files.
 
 %\begin{figure}[ht]
 %\begin{center}
@@ -254,12 +254,31 @@ plotFreqStat(colorectal, all = T)
 \pagebreak
 
 summarize.clones() function is the text equivalent of plotFreqStat() -
-it summarizes the frequencies of changes for each clone accross
+it summarizes the frequencies of changes for each clone across
 tumors and includes results of statistical comparisons for each clone when 
 available.
 
 <<echo=TRUE,print=FALSE>>=
 summarize.clones(colorectal)[1:10 ,]
+@
+
+threshold.func() function gives the clone by sample matrix of gains and 
+losses. "1" indicates gain and "-1" indicates loss.
+
+<<echo=TRUE,print=FALSE>>=
+factor <- 3
+tbl <- threshold.func(log2.ratios(colorectal),
+            posThres=factor*(sd.samples(colorectal)$madGenome))
+rownames(tbl) <- clone.names(colorectal)
+colnames(tbl) <- sample.names(colorectal)
+tbl[1:5,1:5]
+@
+
+fga.func() function gives the fraction of genome altered for each sample.
+
+<<echo=TRUE,print=FALSE>>=
+col.fga <- fga.func(colorectal, factor=3,chrominfo=human.chrom.info.Jul03)
+cbind(gainP=col.fga$gainP,lossP=col.fga$lossP)[1:5,]
 @
 
 %TkWidgets - later!!!
@@ -312,7 +331,7 @@ plotSummaryProfile(colorectal, response = sex,
 
 
 \pagebreak
-Testing association of clones with categorical outcome for autosomal clones that are gained or lost in at least 10\% of the samples. Note that the same dataset should be provided for creating \em{resT} object and for plotting. Pay attention that HMM-related objects including sample variability do not get subsetted at the moment. Note that currently two-stage subsetting does not work for HMM slots, i.e two conditions (change and autosomal) need to be done in one iteration.
+Testing association of clones with categorical outcome for autosomal clones that are gained or lost in at least 10\% of the samples. Note that the same dataset should be provided for creating {\em resT} object and for plotting. Pay attention that HMM-related objects including sample variability do not get subsetted at the moment. Note that currently two-stage subsetting does not work for HMM slots, i.e. two conditions (change and autosomal) need to be done in one iteration.
 
 <<echo=TRUE,print=FALSE>>=
 factor <- 3

@@ -11,7 +11,8 @@ plotSummaryProfile(aCGH.obj,
                    titles = unique(response[!is.na(response)]),
                    X = TRUE, Y = FALSE, maxChrom = 23,
                    chrominfo = human.chrom.info.Jul03,
-                   num.plots.per.page = length(titles))
+                   num.plots.per.page = length(titles),
+                   factor = 2.5, posThres=100, negThres=-0.75)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,14 +31,17 @@ plotSummaryProfile(aCGH.obj,
     logical indicating whether Y needs to be shown
   }  
   \item{maxChrom}{this parameter controls how many chromosomes will be
-    plotted, from 1 to maxChrom.}
+    plotted, from 1 to maxChrom}
   \item{chrominfo}{
-    a chromosomal information associated with the mapping of the data.
+    a chromosomal information associated with the mapping of the data
   }
   \item{num.plots.per.page}{
     number of frequency plots per page. Default is the number of
-    groups.
+    groups
   }
+  \item{factor}{\code{factor} specifies the number by which experimental variability should be multiples. Used only when tumor specific variability in \code{aCGH.obj} is not NULL. Defaults to 2.5}
+  \item{posThres}{Threshold for gain. Set very high for homozygous deletion}
+  \item{negThres}{Threshold for homozygous deletion}
 }
 \details{
   This function utilizes output of the \code{\link{find.genomic.events}}

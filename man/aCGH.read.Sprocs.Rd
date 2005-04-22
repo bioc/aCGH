@@ -64,14 +64,9 @@ datadir <- system.file("examples", package = "aCGH")
 latest.mapping.file <-
       file.path(datadir, "human.clones.info.Jul03.txt")
 ex.acgh <-
-	aCGH.read.Sprocs(dir(path = datadir,
-			pattern = paste("*", "*sproc*", sep = "\."),
+	aCGH.read.Sprocs(dir(path = datadir,pattern = "sproc",
 			full.names = TRUE), latest.mapping.file,
 			chrom.remove.threshold = 23)
-#    aCGH.read.Sprocs(dir(path = datadir,
-#                     pattern = paste("*", "txt", sep = "\."),
-#                     full.names = TRUE), latest.mapping.file,
-#                     chrom.remove.threshold = 23)
 ex.acgh
 
 ## Testing if creating the object went right. Should all be true.

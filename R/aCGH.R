@@ -8,8 +8,8 @@ create.aCGH <-
     if (!is.null(phenotype) && ncol(log2.ratios) != nrow(phenotype))
         stop("Number of columns of log2.ratios and number of rows in\
 phenotype differ!")
-    if (!all(rownames(log2.ratios) == clones.info$Clone))
-        rownames(log2.ratios) <- clones.info$Clone
+##    if (!all(rownames(log2.ratios) == clones.info$Clone))
+##        rownames(log2.ratios) <- clones.info$Clone
     value <-
         list(log2.ratios = log2.ratios,
              clones.info = clones.info,
@@ -815,3 +815,56 @@ length.num.func <-
 prop.num.func <-
     function(x, num)
     sapply(num, function(i) mean(x == i, na.rm = TRUE))
+
+as.eSet <-
+    function(aCGH.obj)
+{
+
+    new.l2r <-
+        new("exprList",
+            .Data =
+            list(exprs = log2.ratios(aCGH.obj),
+                 log2.ratios.imputed = log2.ratios.imputed(aCGH.obj),
+                 clones.info = clones.info(aCGH.obj),
+                 hmm = hmm(aCGH.obj),
+                 hmm.merged = hmm.merged(aCGH.obj),
+                 sd.samples = sd.samples(aCGH.obj),
+                 genomic.events = genomic.events(aCGH.obj)),
+            eMetadata =
+            data.frame(name =
+                       c("log2 ratios", "log2 ratios imputed",
+                         "clones info", "hmm states",
+                         "merged hmm states",
+                         "samples noise std. deviation",
+                         "genomic events"),
+                       etype =
+                       c("random numbers", "imputed numbers",
+                         "clone information", "integers",
+                         "integers", "random numbers",
+                         "integers")))
+    pheno <- phenotype(aCGH.obj)
+    pheno.names <- colnames(pheno)
+    varLabels <-
+        lapply(1:ncol(pheno),
+               function(i) {
+
+                   attr.class <- class(pheno[, i])
+                   descr <-
+                       if (attr.class == "factor")
+                           paste(nlevels(pheno[, i]), "levels")
+                       else
+                           attr.class
+                   
+                   paste(pheno.names[i], "; ", descr, sep = "")
+                   
+               })
+    names(varLabels) <- paste("cov", 1:ncol(pheno), sep = "")
+    phenoData <-
+        new('phenoData',
+            pData = pheno,
+            varLabels = varLabels,
+            varMetadata = data.frame(varNames = pheno.names))
+    
+    new("eSet", eList = new.l2r, phenoData = phenoData)
+    
+}
