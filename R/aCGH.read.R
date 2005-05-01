@@ -20,8 +20,7 @@ read.Sproc.files <-
                nreplic <- dat[ ,3 ]
                flag <- dat[ ,4 ]
                tmp1 <-
-                   flag == 1 &
-               ((log2stddev > maxsd) | (nreplic < minreplic))
+                   flag == 1 | (log2stddev > maxsd) | (nreplic < minreplic)
                log2rat[tmp1] <- NA
                log2rat
                
@@ -112,7 +111,7 @@ aCGH.read.Sprocs <-
 
     }
     colnames(clones.info) <- c("Clone", "Target", "Chrom", "kb")
-    rownames(log2.ratios) <- clones.info$Clone
+    rownames(log2.ratios) <- clones.info$Target
     
     if (unmapScreen)
     {

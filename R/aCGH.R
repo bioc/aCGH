@@ -820,6 +820,10 @@ as.eSet <-
     function(aCGH.obj)
 {
 
+    ver <- R.Version()
+    if (as.numeric(ver$major) < 1 && as.numeric(ver$minor) < 9)
+        stop("Using as.eSet() requires R version >= 1.9!")
+    
     new.l2r <-
         new("exprList",
             .Data =

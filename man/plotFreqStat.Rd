@@ -73,7 +73,7 @@ plotFreqStat(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
     the gain/loss frequency data as well as for clone screening and for
     significance analysis when \code{threshold} is TRUE.Defaults to 0.25
   }
-  \item{factor}{\code{factor} specifies the number by which experimental variability should be multiplied. used only when sd.samples(\code{aCGH.obj}) is NULL. Defaults to 2.5}
+  \item{factor}{\code{factor} specifies the number by which experimental variability should be multiplied. used only when sd.samples(\code{aCGH.obj}) is not NULL or when factor is greater than 0. Defaults to 2.5}
   \item{ylm}{\code{ylm} vertical limits for the plot}
   \item{p.thres}{
     \code{p.thres} vector of p-value ciut-off to be plotted. computed

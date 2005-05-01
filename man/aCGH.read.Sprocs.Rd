@@ -72,8 +72,8 @@ ex.acgh
 ## Testing if creating the object went right. Should all be true.
 
 all(log2.ratios(ex.acgh)[ 1, ] == c(-0.077698 , 0.007389))
-clone.name <- "RP11-88I12"
-all(log2.ratios(ex.acgh)[ clone.name, ] == c(0.096387 , 0.050999))
+clone.name <- "HumArray2H10_T30"
+all(log2.ratios(ex.acgh)[ clone.name, ] == c(0.025567 , -0.036908))
 
 }
 \keyword{file}% at least one, from doc/KEYWORDS

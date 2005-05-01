@@ -15,7 +15,7 @@
 }
 \usage{
 aCGH.test(aCGH.obj, rsp, test = c("survdiff","coxph",
-          "linear.regression"), p.adjust.method = "fdr",
+          "linear.regression"), p.adjust.method = "fdr",imputed=TRUE, 
            subset = NULL, strt = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -33,6 +33,8 @@ aCGH.test(aCGH.obj, rsp, test = c("survdiff","coxph",
     multiple testing. Default value is Benjamini & Hochberg (1995) FDR
     method. Please refer to \code{\link{p.adjust}} function for more
     help.}
+  \item{imputed}{ Whether imputed or original log2ratios should be
+    used. Default is TRUE (imputed).}
   \item{subset}{Specifies subset index of clones to be tested.}
   \item{strt}{Aptional strata variable for splitting the data in
     different strata.}

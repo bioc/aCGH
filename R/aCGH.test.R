@@ -14,10 +14,17 @@ create.resT <-
 
 }
 
-aCGH.test <- function(aCGH.obj, rsp, test = c("survdiff", "coxph", "linear.regression"),p.adjust.method = "fdr", subset = NULL, strt = NULL, ...)
+aCGH.test <- function(aCGH.obj, rsp, test = c("survdiff", "coxph", "linear.regression"),p.adjust.method = "fdr", imputed = TRUE, subset = NULL, strt = NULL, ...)
 {
 
-    l2r <- as.matrix(log2.ratios.imputed(aCGH.obj))
+    if (imputed)
+    {
+    	l2r <- as.matrix(log2.ratios.imputed(aCGH.obj))
+    }
+    else
+    {
+	l2r <- as.matrix(log2.ratios(aCGH.obj))
+    }
     if (!is.null(subset))
         l2r <- l2r[ subset, ]
     test <- match.arg(test)
@@ -150,7 +157,7 @@ threshold.func <- function(dat, posThres, negThres=NULL)
 
 fga.func <-	function(aCGH.obj, thres=0.25, factor=2.5, samplenames = sample.names(aCGH.obj), chrominfo=human.chrom.info.Jul03) {
 	#check if sd.samples are non-empty:
-	if (!is.null(sd.samples(aCGH.obj))) {
+	if (!is.null(sd.samples(aCGH.obj)) && (factor > 0)) {
 		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
 	}
     
@@ -354,7 +361,7 @@ plotFreqStat <-
              ){
 
 #check if sd.samples are non-empty:
-    if (!is.null(sd.samples(aCGH.obj)))
+    if (!is.null(sd.samples(aCGH.obj)) && (factor > 0))
 	{
 		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
 	}
@@ -495,6 +502,8 @@ plotFreqStat <-
         ylm[2] <- max(ylm, max(gl$gainP))
 
         ind <- which(gl$gainP >= cutplot)
+	if (colored)
+	{
         plot(kb.loc[ind], gl$gainP[ind],
              col = "green",
              type = "h", xlab = "chromosome number",
@@ -508,7 +517,23 @@ plotFreqStat <-
         points(kb.loc[ind], -gl$lossP[ind],
                col = "red",
                type = "h")
-
+	}
+	else
+	{
+        plot(kb.loc[ind], gl$gainP[ind],
+             col = "grey10",
+             type = "h", xlab = "chromosome number",
+             ylab = "Fraction gained or lost", pch = 18, main = tl,
+             ylim = ylm,
+             xlim = c(0, max(cumsum(chrominfo$length), kb.loc[ind],
+             rm.na = TRUE)), xaxt="n")
+             
+	axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
+        ind <- gl$lossP >= cutplot
+        points(kb.loc[ind], -gl$lossP[ind],
+               col = "grey50",
+               type = "h")
+	}
         abline(h = 0)
         abline(v = cumsum(chrominfo$length), col = col.scheme$abline1)
         abline(v = chrom.centr, lty = 2, col = col.scheme$abline2)
@@ -604,7 +629,7 @@ summarize.clones <-
 {
 
 	#check if sd.samples are non-empty:
-    if (!is.null(sd.samples(aCGH.obj)))
+    if (!is.null(sd.samples(aCGH.obj)) && (factor > 0))
 	{
 		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
 	}
