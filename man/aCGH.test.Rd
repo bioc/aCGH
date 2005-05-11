@@ -21,12 +21,12 @@ aCGH.test(aCGH.obj, rsp, test = c("survdiff","coxph",
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{aCGH.obj}{ aCGH object containing clones' log2 ratios. }
-  \item{rsp}{ Response variable which is either \code{\link{Surv}}
+  \item{rsp}{ Response variable which is either \code{\link[survival]{Surv}}
     object from \code{survival} package or continous outcome.}
   \item{test}{ Currently only three values are allowed - "coxph",
     "survdiff", and "linear.regression", which test for association
     using Cox proportional hazards model, \eqn{G^\rho} family of tests
-    (\code{\link{survdiff}}) or linear model.
+    (\code{\link[survival]{survdiff}}) or linear model.
   }
   \item{p.adjust.method}{ This is a parameter controlling how the
     p-values from the univariate tests are going to be adjusted for
@@ -73,8 +73,8 @@ aCGH.test(aCGH.obj, rsp, test = c("survdiff","coxph",
 
 %  ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{\code{\link{aCGH}}, \code{\link{Surv}}, \code{\link{mt.maxT}},
-  \code{\link{coxph}}, \code{\link{survdiff}}, \code{\link{p.adjust}}}
+\seealso{\code{\link{aCGH}}, \code{\link[survival]{Surv}}, \code{\link{mt.maxT}},
+  \code{\link[survival]{coxph}}, \code{\link[survival]{survdiff}}, \code{\link{p.adjust}}}
 \examples{
 }
 \keyword{htest}

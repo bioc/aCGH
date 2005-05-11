@@ -166,7 +166,7 @@
     subsetting function. Works the same way as \code{\link{[.data.frame}}.
   }
   \item{as.eSet}{
-    function for converting aCGH object to object of \code{\link{eSet-class}}.
+    function for converting aCGH object to object of \code{\link[Biobase]{eSet-class}}.
   }
   Most of the functions/slots listed above have assignment operators
   '<-' associated with them.
