@@ -80,7 +80,8 @@ hmm.run.func <-
 states.hmm.func <-
     function(sample, chrom, dat, datainfo = clones.info, vr = .01,
              maxiter = 100, aic = FALSE, bic = TRUE, delta = 1,
-             nlists = 1, eps = .01, print.info = F)
+             nlists = 1, eps = .01, print.info = FALSE,
+             diag.prob = .99)
 {
 
     obs <- dat[datainfo$Chrom==chrom, sample]
@@ -106,8 +107,8 @@ states.hmm.func <-
     {
         
         mu <- kmeans(y, k)$centers
-        gamma <- matrix(.1 / (k - 1), k, k)
-        diag(gamma) <- .9
+        gamma <- matrix((1 - diag.prob) / (k - 1), k, k)
+        diag(gamma) <- diag.prob
         zz[[k]] <-
         {
 

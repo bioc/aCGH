@@ -309,9 +309,12 @@ extern "C"
 
 		// Compute the filtered probs and exit
 
-		*_log_lik =
-			calc_observed_likelihood_iter(yll, tpm, pi, true, filter, alpha, beta, *print_info);
-
+// 		*_log_lik =
+// 			calc_observed_likelihood_iter(yll, tpm, pi, true, filter, alpha, beta, *print_info);
+		for(int m = 0, offs = 0; m < T; m++, offs += k)
+			for(int i = 0; i < k; i++)
+				filter[offs + i] = gamma[i][m];
+		
 		// Decode the hidden states using Viterbi alg.
 		
 		calc_complete_likelihood(yll, tpm, pi, hidden_states);

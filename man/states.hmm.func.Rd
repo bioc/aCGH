@@ -10,7 +10,8 @@
 \usage{
 states.hmm.func(sample, chrom, dat, datainfo = clones.info, vr = 0.01,
                 maxiter = 100, aic = FALSE, bic = TRUE, delta = 1,
-                nlists = 1)
+                nlists = 1, eps = .01, print.info = FALSE,
+                diag.prob = .99)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -24,6 +25,11 @@ states.hmm.func(sample, chrom, dat, datainfo = clones.info, vr = 0.01,
   \item{bic}{ ~~Describe \code{bic} here~~ }
   \item{delta}{ ~~Describe \code{delta} here~~ }
   \item{nlists}{ ~~Describe \code{nlists} here~~ }
+  \item{eps}{ parameter controlling the convergence of the EM algorithm }
+  \item{print.info}{ print.info = T allows diagnostic information to be
+    printed on the screen. }
+  \item{diag.prob}{ parameter controlling the construction of the
+    initial transition probability matrix. }
 }
 \seealso{
   \code{\link{aCGH}}
