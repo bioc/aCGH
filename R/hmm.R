@@ -5,7 +5,7 @@
 
 hmm.run.func <-
     function(dat, datainfo = clones.info, vr = .01, maxiter = 100,
-             aic = TRUE, bic = TRUE, delta = NA)
+             aic = TRUE, bic = TRUE, delta = NA, eps = .01)
 {
     chrom.uniq <- unique(datainfo$Chrom)
     states <- matrix(NA, nrow=nrow(dat), ncol=(2+6*ncol(dat)))
@@ -59,7 +59,7 @@ hmm.run.func <-
             
             cat(j, " ")
             
-            res <- try(states.hmm.func(sample=i, chrom=j, dat=dat, datainfo=datainfo,vr=vr, maxiter=maxiter, aic=aic, bic=bic, delta=delta, nlists=nlists))
+            res <- try(states.hmm.func(sample=i, chrom=j, dat=dat, datainfo=datainfo,vr=vr, maxiter=maxiter, aic=aic, bic=bic, delta=delta, nlists=nlists, eps = eps))
             
             for (m in 1:nlists)
             {
@@ -77,22 +77,10 @@ hmm.run.func <-
     list(states.hmm = states.list, nstates.hmm = nstates.list)
 }
 
-#####################################################################
-#####################################################################
-
-##auxilliary function
-
-mu1.func <-
-    function(p) 
-    matrix(p, nrow = 1)
-
-#####################################################################
-#####################################################################
-
 states.hmm.func <-
     function(sample, chrom, dat, datainfo = clones.info, vr = .01,
              maxiter = 100, aic = FALSE, bic = TRUE, delta = 1,
-             nlists = 1)
+             nlists = 1, eps = .01, print.info = F)
 {
 
     obs <- dat[datainfo$Chrom==chrom, sample]
@@ -110,110 +98,44 @@ states.hmm.func <-
 #####################################
 
     numobs <- length(y)
-
-######################################
-
-    ##have been taken outside
-    ##mu1.func <- function(p) {matrix(p, nrow=1)}
-
-######################################
-    ##initial clustering:
-
-    pam2 <- kmeans(y,2)
-    pam3 <- kmeans(y,3)
-    pam4 <- kmeans(y,4)
-    pam5 <- kmeans(y,5)
-
-#####################
-    ##means:
-
-    mu2 <- c(pam2$centers)
-    mu3 <- c(pam3$centers)
-    mu4 <- c(pam4$centers)
-    mu5 <- c(pam5$centers)
-
-####################################
-    ##trans. matrices:
-
-    gamma2 <- matrix(c(.9,.1,.1,.9),ncol=2, b = TRUE)
-    gamma3 <-
-        matrix(c(.9,.05,.05,.05,.9,.05,.05,.05,.9),ncol=3, b = TRUE)
-    gamma4 <-
-        matrix(c(.9, rep(.1 / 3, 3), .1 / 3, .9, rep(.1 / 3, 2),
-                 rep(.1 / 3, 2), .9, .1 / 3, rep(.1 / 3, 3), .9 ),
-               ncol = 4, b = TRUE)
-    gamma5 <-
-        matrix(c(.9, rep(.025, 4), .025, .9, rep(.025, 3),
-                 rep(.025, 2), .9, rep(.025, 2), rep(.025, 3), .9,
-                 .025, rep(.025, 4), .9),
-               ncol = 5, b = TRUE)
-
-####################################
-    ##df's for each model
-
-    ##for uniform variance:
-    ##number of states (means) + number of states*(number of states-1) (transitions) #+ 1 (variance)
-
-    k1 <- 2
-    k2 <- 5
-    ##k2.heter <- 6
-    k3 <- 10
-    ##k3.heter <- 12
-    k4 <- 17
-    ##k4.heter <- 20
-    k5 <- 26
-    ##k5.heter <- 30
-
-###################################
-    z1 <- -sum(log(dnorm(y, mean=mean(y), sd=sqrt(var(y)))))
-    z2 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu2, pshape=vr, pgamma=gamma2, iterlim=maxiter))
-    ##z2.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu2, pshape=rep(vr,2), pgamma=gamma2, iterlim=maxiter))
-    z3 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu3, pshape=vr, pgamma=gamma3, iterlim=maxiter))
-    ##z3.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu3, pshape=rep(vr,3), pgamma=gamma3, iterlim=maxiter))
-    z4 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu4, pshape=vr, pgamma=gamma4, iterlim=maxiter))
-    ##z4.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu4, pshape=rep(vr,4), pgamma=gamma4, iterlim=maxiter))
-    z5 <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu5, pshape=vr, pgamma=gamma5, iterlim=maxiter))
-    ##z5.heter <- try(hidden(y,dist="normal", cmu=mu1.func, pcmu=mu5, pshape=rep(vr,5), pgamma=gamma5, iterlim=maxiter))
-
-
-    options(show.error.messages = TRUE)
-#################################
-
-
-    if (length(names(z2)) == 0)
+    zz <- vector(mode = "list", 5)
+    zz[[1]] <-
+        list(log.lik =
+             sum(dnorm(y, mean = mean(y), sd = sd(y), log = T)))
+    for(k in 2:5)
     {
-        z2$maxlik <- NA
-    }
-    ##if (length(names(z2.heter)) == 0)
-    ##{
-    ##        z2.heter$maxlik <- NA
-    ##}
+        
+        mu <- kmeans(y, k)$centers
+        gamma <- matrix(.1 / (k - 1), k, k)
+        diag(gamma) <- .9
+        zz[[k]] <-
+        {
 
-    if (length(names(z3)) == 0)
-    {
-        z3$maxlik <- NA
+            res <-
+                .C("calc_observed_likelihood",
+                   as.integer(numobs),
+                   as.double(y),
+                   as.integer(k),
+                   mu = as.double(mu),
+                   sigma = as.double(sqrt(vr)),
+                   gamma = as.double(gamma),
+                   pi = as.double(rep(-log(k), k)),
+                   num.iter = as.integer(maxiter),
+                   as.double(eps),
+                   log.lik = double(1),
+                   filtered.cond.probs = double(k * numobs),
+                   hidden.states = integer(numobs),
+                   as.logical(print.info),
+                   package = "aCGH")
+            res$hidden.states <- res$hidden.states + 1
+            res$filtered.cond.probs <-
+                matrix(res$filtered.cond.probs, nr = k)
+            res$gamma <- exp(matrix(res$gamma, nr = k))
+            res
+            
+        }
+        
     }
-    ##if (length(names(z3.heter)) == 0)
-    ##{
-    ##        z3.heter$maxlik <- NA
-    ##}
-    if (length(names(z4)) == 0)
-    {
-        z4$maxlik <- NA
-    }
-    ##if (length(names(z4.heter)) == 0)
-    ##{
-    ##        z4.heter$maxlik <- NA
-    ##}
-    if (length(names(z5)) == 0)
-    {
-        z5$maxlik <- NA
-    }
-    ##if (length(names(z5.heter)) == 0)
-    ##{
-    ##        z5.heter$maxlik <- NA
-    ##}
-
 
 ###############################################3
 ###############################################3
@@ -221,6 +143,10 @@ states.hmm.func <-
 
     ##now, scroll over all options:
 
+    ##number of states (means) + number of states*(number of states-1) (transitions) #+ 1 (variance)
+
+#    kk <- c(2, 5, 10, 17, 26)
+    kk <- (1:5) ^ 2 + 1
     for (nl in 1:nlists)
     {
         if ((aic) && (nl==1))
@@ -240,60 +166,32 @@ states.hmm.func <-
                 factor <- log(numobs)*delta[nl]
             }
         }
-
-        lik <- c((z1+k1*factor/2),(z2$maxlik+k2*factor/2),(z3$maxlik+k3*factor/2),(z4$maxlik+k4*factor/2),(z5$maxlik+k5*factor/2))
-        likmin <- which.min(lik)
-
-        if (likmin == 1)
-        {
-            z <- z1
-            name <- "z1"
-            nstates <- 1
-        }
-        else if (likmin == 2)
-        {
-            z <- z2
-            name <- "z2"
-            nstates <- 2
-        }
-        else if (likmin == 3)
-        {
-            z <- z3
-            name <- "z3"
-            nstates <- 3
-        }
-        else if (likmin == 4)
-        {
-            z <- z4
-            name <- "z4"
-            nstates <- 4
-        }
-        else if (likmin == 5)
-        {
-            z <- z5
-            name <- "z5"
-            nstates <- 5
-        }
-
+        lik <- sapply(zz, function(z) -z$log.lik) + kk * factor / 2
+        nstates <- likmin <- which.min(lik)
+        z <- zz[[likmin]]
 
 ######################################
         ##out rpred and state
 
-        if (nstates  > 1) #if non-generic
+        if (nstates > 1) #if non-generic
         {
             ##print(nstates)
-            maxstate <- apply(z$filter,2,which.max)
-            rpred <- z$rpred
-            prob <- apply(z$filter,2,max)
-            ##pred <- z$coef[maxstate]
+            maxstate <- apply(z$filter, 2, which.max)
+###            maxstate <- z$hidden.states
+            rpred <- as.vector(z$mu %*% z$filter)
+            prob <- apply(z$filter, 2, max)
             ##use median for prediction and mad for state dispersions
             maxstate.unique <- unique(maxstate)
             pred <- rep(0, length(y))
             disp <- rep(0, length(y))
             for (m in 1:length(maxstate.unique))
             {
-                pred[maxstate==maxstate.unique[m]] <- median(y[maxstate==maxstate.unique[m]])
-                disp[maxstate==maxstate.unique[m]] <- mad(y[maxstate==maxstate.unique[m]])
+                
+                pred[maxstate==maxstate.unique[m]] <-
+                    median(y[maxstate==maxstate.unique[m]])
+                disp[maxstate==maxstate.unique[m]] <-
+                    mad(y[maxstate==maxstate.unique[m]])
+                
             }
 
             ##if (length(z$pshape) == 1)
@@ -319,7 +217,12 @@ states.hmm.func <-
             
         }
         
-        out <- cbind(matrix(maxstate, ncol=1), matrix(rpred, ncol=1), matrix(prob, ncol=1), matrix(pred, ncol=1), matrix(disp, ncol=1))
+        out <-
+            cbind(matrix(maxstate, ncol=1),
+                  matrix(rpred, ncol=1),
+                  matrix(prob, ncol=1),
+                  matrix(pred, ncol=1),
+                  matrix(disp, ncol=1))
         
         out.all <- matrix(NA, nrow=length(kb.ord), ncol=6)
         out.all[ind.nonna,1:5] <- out

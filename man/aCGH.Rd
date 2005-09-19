@@ -46,7 +46,7 @@
 \alias{prop.num.func}
 \alias{subset.hmm}
 \alias{subset.hmm.merged}
-\alias{as.eSet}
+% \alias{as.eSet}
 
 \title{Class aCGH}
 \description{Objects of this class represent batch of arrays of
@@ -165,9 +165,9 @@
   \item{[.aCGH}{
     subsetting function. Works the same way as \code{\link{[.data.frame}}.
   }
-  \item{as.eSet}{
-    function for converting aCGH object to object of \code{\link[Biobase]{eSet-class}}.
-  }
+%   \item{as.eSet}{
+%     function for converting aCGH object to object of \code{\link[Biobase]{eSet-class}}.
+%   }
   Most of the functions/slots listed above have assignment operators
   '<-' associated with them.
   
@@ -248,9 +248,9 @@ dev.off()
 
 plotSummaryProfile(colorectal)
 
-## Converting to eSet-class
+% ## Converting to eSet-class
 
-as.eSet(colorectal)
+% as.eSet(colorectal)
 
 }
 \author{

@@ -816,59 +816,59 @@ prop.num.func <-
     function(x, num)
     sapply(num, function(i) mean(x == i, na.rm = TRUE))
 
-as.eSet <-
-    function(aCGH.obj)
-{
+##as.eSet <-
+##    function(aCGH.obj)
+##{
 
-    ver <- R.Version()
-    if (as.numeric(ver$major) < 1 && as.numeric(ver$minor) < 9)
-        stop("Using as.eSet() requires R version >= 1.9!")
+##    ver <- R.Version()
+##    if (as.numeric(ver$major) < 1 && as.numeric(ver$minor) < 9)
+##        stop("Using as.eSet() requires R version >= 1.9!")
     
-    new.l2r <-
-        new("exprList",
-            .Data =
-            list(exprs = log2.ratios(aCGH.obj),
-                 log2.ratios.imputed = log2.ratios.imputed(aCGH.obj),
-                 clones.info = clones.info(aCGH.obj),
-                 hmm = hmm(aCGH.obj),
-                 hmm.merged = hmm.merged(aCGH.obj),
-                 sd.samples = sd.samples(aCGH.obj),
-                 genomic.events = genomic.events(aCGH.obj)),
-            eMetadata =
-            data.frame(name =
-                       c("log2 ratios", "log2 ratios imputed",
-                         "clones info", "hmm states",
-                         "merged hmm states",
-                         "samples noise std. deviation",
-                         "genomic events"),
-                       etype =
-                       c("random numbers", "imputed numbers",
-                         "clone information", "integers",
-                         "integers", "random numbers",
-                         "integers")))
-    pheno <- phenotype(aCGH.obj)
-    pheno.names <- colnames(pheno)
-    varLabels <-
-        lapply(1:ncol(pheno),
-               function(i) {
+##    new.l2r <-
+##        new("exprList",
+##            .Data =
+##            list(exprs = log2.ratios(aCGH.obj),
+##                 log2.ratios.imputed = log2.ratios.imputed(aCGH.obj),
+##                 clones.info = clones.info(aCGH.obj),
+##                 hmm = hmm(aCGH.obj),
+##                 hmm.merged = hmm.merged(aCGH.obj),
+##                 sd.samples = sd.samples(aCGH.obj),
+##                 genomic.events = genomic.events(aCGH.obj)),
+##            eMetadata =
+##            data.frame(name =
+##                       c("log2 ratios", "log2 ratios imputed",
+##                         "clones info", "hmm states",
+##                         "merged hmm states",
+##                         "samples noise std. deviation",
+##                         "genomic events"),
+##                       etype =
+##                       c("random numbers", "imputed numbers",
+##                         "clone information", "integers",
+##                         "integers", "random numbers",
+##                         "integers")))
+##    pheno <- phenotype(aCGH.obj)
+##    pheno.names <- colnames(pheno)
+##    varLabels <-
+##        lapply(1:ncol(pheno),
+##               function(i) {
 
-                   attr.class <- class(pheno[, i])
-                   descr <-
-                       if (attr.class == "factor")
-                           paste(nlevels(pheno[, i]), "levels")
-                       else
-                           attr.class
+##                   attr.class <- class(pheno[, i])
+##                   descr <-
+##                       if (attr.class == "factor")
+##                           paste(nlevels(pheno[, i]), "levels")
+##                       else
+##                           attr.class
                    
-                   paste(pheno.names[i], "; ", descr, sep = "")
+##                   paste(pheno.names[i], "; ", descr, sep = "")
                    
-               })
-    names(varLabels) <- paste("cov", 1:ncol(pheno), sep = "")
-    phenoData <-
-        new('phenoData',
-            pData = pheno,
-            varLabels = varLabels,
-            varMetadata = data.frame(varNames = pheno.names))
+##               })
+##    names(varLabels) <- paste("cov", 1:ncol(pheno), sep = "")
+##    phenoData <-
+##        new('phenoData',
+##            pData = pheno,
+##            varLabels = varLabels,
+##            varMetadata = data.frame(varNames = pheno.names))
     
-    new("eSet", eList = new.l2r, phenoData = phenoData)
+##    new("eSet", eList = new.l2r, phenoData = phenoData)
     
-}
+##}
