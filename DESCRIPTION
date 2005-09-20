@@ -1,7 +1,7 @@
 Package: aCGH
 Title: Classes and functions for Array Comparative Genomic
         Hybridization data.
-Version: 1.2.0
+Version: 1.2.1
 Date: 2005-05-19
 Depends: R (>= 1.8.0), cluster, repeated, rmutil, survival, multtest,
         sma
