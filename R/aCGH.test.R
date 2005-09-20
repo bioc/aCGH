@@ -476,6 +476,7 @@ plotFreqStat <-
     if (Y)
         numchr <- numchr + 1
     chrominfo <- chrominfo[ 1:numchr, ]
+    ind.na <- datainfo$Chrom%in%(1:numchr)
 
     ##compute cumulative kb locations
     start <- c(0, cumsum(chrominfo$length))
@@ -501,7 +502,7 @@ plotFreqStat <-
         ylm[1] <- min(ylm, min(gl$lossP))
         ylm[2] <- max(ylm, max(gl$gainP))
 
-        ind <- which(gl$gainP >= cutplot)
+        ind <- which(gl$gainP >= cutplot & ind.na)
 	if (colored)
 	{
         plot(kb.loc[ind], gl$gainP[ind],
@@ -512,8 +513,8 @@ plotFreqStat <-
              xlim = c(0, max(cumsum(chrominfo$length), kb.loc[ind],
              rm.na = TRUE)), xaxt="n")
              
-	axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
-        ind <- gl$lossP >= cutplot
+	  axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
+        ind <- gl$lossP >= cutplot & ind.na
         points(kb.loc[ind], -gl$lossP[ind],
                col = "red",
                type = "h")
@@ -528,8 +529,8 @@ plotFreqStat <-
              xlim = c(0, max(cumsum(chrominfo$length), kb.loc[ind],
              rm.na = TRUE)), xaxt="n")
              
-	axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
-        ind <- gl$lossP >= cutplot
+	  axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
+        ind <- gl$lossP >= cutplot & ind.na
         points(kb.loc[ind], -gl$lossP[ind],
                col = "grey50",
                type = "h")

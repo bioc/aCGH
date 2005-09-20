@@ -11,8 +11,7 @@
   Genome Assembly July 2003 freeze.
 }
 \usage{
-human.chrom.info.Jul03 is loaded automatically with
-\code{\link{aCGH}} package.
+human.chrom.info.Jul03 is loaded automatically with the aCGH package.
 }
 \format{
   A data frame with 24 observations on the following 3 variables.
