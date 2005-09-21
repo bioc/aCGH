@@ -25,7 +25,8 @@ states.hmm.func(sample, chrom, dat, datainfo = clones.info, vr = 0.01,
   \item{bic}{ ~~Describe \code{bic} here~~ }
   \item{delta}{ ~~Describe \code{delta} here~~ }
   \item{nlists}{ ~~Describe \code{nlists} here~~ }
-  \item{eps}{ parameter controlling the convergence of the EM algorithm }
+  \item{eps}{ parameter controlling the convergence of the EM
+    algorithm. }
   \item{print.info}{ print.info = T allows diagnostic information to be
     printed on the screen. }
   \item{diag.prob}{ parameter controlling the construction of the

@@ -18,7 +18,7 @@
 }
 \usage{
 hmm.run.func(dat, datainfo = clones.info, vr = 0.01, maxiter = 100,
-             aic = TRUE, bic = TRUE, delta = NA)
+             aic = TRUE, bic = TRUE, delta = NA, eps = 0.01)
 find.hmm.states(aCGH.obj, ...)
 }
 %- maybe also `usage' for other objects documented here.
@@ -40,9 +40,11 @@ find.hmm.states(aCGH.obj, ...)
     criterion should be used for model selection (see DETAILS)}
   \item{delta}{numeric vector of penalty factors to use with BIC
     criterion. If BIC is true, delta=1 is always calculated (see DETAILS)}
+  \item{eps}{parameter controlling the convergence of the EM
+    algorithm.}
   \item{...}{
-    All the parameters that can be passed to hmm.run.func except dat and
-    datainfo.
+    All the parameters that can be passed to find.hmm.states except dat
+    and datainfo.
   }
 }
 \details{

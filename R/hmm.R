@@ -5,7 +5,7 @@
 
 hmm.run.func <-
     function(dat, datainfo = clones.info, vr = .01, maxiter = 100,
-             aic = TRUE, bic = TRUE, delta = NA, eps = .01)
+             aic = TRUE, bic = TRUE, delta = NA, eps = 0.01)
 {
     chrom.uniq <- unique(datainfo$Chrom)
     states <- matrix(NA, nrow=nrow(dat), ncol=(2+6*ncol(dat)))
@@ -127,7 +127,7 @@ states.hmm.func <-
                    filtered.cond.probs = double(k * numobs),
                    hidden.states = integer(numobs),
                    as.logical(print.info),
-                   package = "aCGH")
+                   PACKAGE = "aCGH")
             res$hidden.states <- res$hidden.states + 1
             res$filtered.cond.probs <-
                 matrix(res$filtered.cond.probs, nr = k)
