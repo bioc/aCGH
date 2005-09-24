@@ -3,10 +3,12 @@
 \alias{dotify.names}
 \alias{read.Sproc.files}
 \alias{extract.clones.info}
+\alias{maxdiff.func}
+\alias{mincorr.func}
 \title{Create object of class "aCGH" from Sproc files}
 \description{
-  This function reads in two-channel Array Complimentary Genomic
-  Habrydization Sproc files, flags them for bad quality and missing
+  This function reads in two-channel Array Comparative Genomic
+  Hybridization Sproc files, flags them for bad quality and missing
   data, and creates object of class \code{aCGH}.
 }
 \usage{
@@ -14,7 +16,8 @@ aCGH.read.Sprocs(fnames, latest.mapping.file = NULL, maxsd = 0.2,
                  minreplic = 2, chrom.remove.threshold = 24,
                  prop.missing = 0.25, sample.names = fnames,
                  sample.quality.threshold = 0.4,
-                 cols = c("Log2Rat", "Log2StdDev", "NReplic", "Bad.P"), unmapScreen=TRUE, dupRemove = TRUE)
+                 cols = c("Log2Rat", "Log2StdDev", "NReplic", "Bad.P"),
+                 unmapScreen=TRUE, dupRemove = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

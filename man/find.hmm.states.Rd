@@ -1,7 +1,6 @@
 \name{find.hmm.states}
 \alias{find.hmm.states}
 \alias{hmm.run.func}
-\alias{mu1.func}
 \alias{as.matrix.dist}
 \alias{plotChrom.hmm.func}
 \alias{plotCGH.hmm.func}
