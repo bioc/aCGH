@@ -9,10 +9,12 @@
 \description{
   This dataset contains basic chromosomal information for UCSC Human
   Genome Assembly July 2003 freeze.
-}
-\usage{
 human.chrom.info.Jul03 is loaded automatically with the aCGH package.
 }
+\usage{
+ data("human.chrom.info.Jul03")
+}
+
 \format{
   A data frame with 24 observations on the following 3 variables.
   \describe{
