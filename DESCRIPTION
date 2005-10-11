@@ -13,4 +13,5 @@ Description: Functions for reading aCGH data from image analysis
         objects.
 Maintainer: Jane Fridlyand <jfridlyand@cc.ucsf.edu>
 License: GPL
+SaveImage: yes
 
