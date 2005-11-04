@@ -157,7 +157,7 @@ extern "C"
 {
 
 	void
-	calc_observed_likelihood(int *_T, double *_y, int *_k, double *means,
+	calc_observed_likelihood(int *seq_len, double *_y, int *_k, double *means,
 							 double *sigma, double *TPM, double *pi, int *maxiter,
 							 double *eps, double *_log_lik, double *filter,
 							 int *hidden_states, bool *print_info)
@@ -165,7 +165,7 @@ extern "C"
 
 		// Initialization
 		
-		int k = *_k, T = *_T;
+		int k = *_k, T = *seq_len;
 		vector< vector<double> > tpm(k, vector<double>(k)),
 			yll(k, vector<double>(T)), alpha(k, vector<double>(T)),
 			beta(k, vector<double>(T)), gamma(k, vector<double>(T)),
