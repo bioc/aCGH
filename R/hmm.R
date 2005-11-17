@@ -131,7 +131,7 @@ states.hmm.func <-
             res$hidden.states <- res$hidden.states + 1
             res$filtered.cond.probs <-
                 matrix(res$filtered.cond.probs, nr = k)
-            res$gamma <- exp(matrix(res$gamma, nr = k))
+            res$gamma <- matrix(res$gamma, nr = k)
             res
             
         }

@@ -48,7 +48,7 @@ calc_observed_likelihood_iter(vector< vector<double> > &yll,
 	// Calculate the observed log-likelihood using scaling variables and
 	// a dynamic programming table.
 
-	for(int m = 1, t = T - 2, offs = k; m < T; m++, t--, offs += k)
+	for(int m = 1, t = T - 2, offs = k; m < T; m++, t--)
 	{
 
 		double avf = 0, avb = 0;
@@ -63,7 +63,7 @@ calc_observed_likelihood_iter(vector< vector<double> > &yll,
 				alpha[i][m] +=
 					exp(yll[i][m] + alpha[j][m - 1] + tpm[j][i]);
 				beta[i][t] +=
-					exp(yll[i][t] + beta[j][t + 1] + tpm[i][j]);
+					exp(yll[i][t + 1] + beta[j][t + 1] + tpm[i][j]);
 
 			}
 			avf += alpha[i][m], avb += beta[i][t];
@@ -236,8 +236,14 @@ extern "C"
 					sum_gamma[i] += (gamma[i][m] = exp(gamma[i][m] - avfb));
 					if (m < T - 1)
 						for(int j = 0; j < k; j++)
+						{
+							
 							sum_ksi[i][j] += exp(ksi[i][j] - avksi);
+// 							Rprintf("\tsum_ksi[%d][%d] = %f", i, j, sum_ksi[i][j]);
+
+						}
 // 					Rprintf("\tgamma[%d][%d] = %f", i, m, gamma[i][m]);
+// 					Rprintf("\tsum_gamma[%d] = %f", i, sum_gamma[i]);
 					
 				}
 // 				Rprintf("\n");
@@ -260,12 +266,15 @@ extern "C"
 // 			Rprintf("tpm:\n");
 			for(int i = 0; i < k; i++)
 			{
-				
+
+				double s = sum_ksi[i][0];
+				for(int j = 1; j < k; j++)
+					s += sum_ksi[i][j];
 				for(int j = 0; j < k; j++)
 				{
 					
-					tpm[i][j] =
-						log(sum_ksi[i][j] / (sum_gamma[i] - gamma[i][T - 1]));
+					tpm[i][j] = log(sum_ksi[i][j] / s);
+// 						log(sum_ksi[i][j]) - log(sum_gamma[i] - gamma[i][T - 1]);
 // 					Rprintf("\t%f", tpm[i][j]);
 					
 				}
@@ -305,7 +314,7 @@ extern "C"
 		*maxiter = iter + 1;
 		for(int i = 0; i < k; i++)
 			for(int j = 0, offs = 0; j < k; j++, offs += k)
-				TPM[offs + i] = tpm[i][j];
+				TPM[offs + i] = exp(tpm[i][j]);
 
 		// Compute the filtered probs and exit
 
