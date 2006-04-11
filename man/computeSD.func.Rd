@@ -1,8 +1,6 @@
 \name{computeSD.func}
 \alias{computeSD.func}
 \alias{computeSD.Samples}
-\alias{}
-%- Also NEED an `\alias' for EACH other topic documented here.
 \title{Function to estimate experimental variability of a sample}
 \description{
   This functions estimate experimental variability of a given
