@@ -278,9 +278,55 @@ hmm.merged <- function(aCGH.obj) aCGH.obj$hmm.merged
 
 }
 
+impute.HMM <-
+    function(aCGH.obj, chrominfo = human.chrom.info.Jul03,
+             maxChrom = 23, use.BIC = TRUE)
+{
+
+    if (is.null(hmm(aCGH.obj)))
+	stop("compute the hmm states first using find.hmm.states\
+function")
+
+    clones.info <- clones.info(aCGH.obj)
+    uniq.chrom <- unique(clones.info$Chrom)
+    states <- hmm(aCGH.obj)$states.hmm[[ifelse(use.BIC, 2, 1)]]
+    sapply(1:ncol(log2.ratios(aCGH.obj)),
+           function(ii) {
+
+               cat("Processing sample ", ii, "\n")
+               i <- 3 + (ii - 1) * 6
+               unlist(lapply(unique(states[, 1]),
+                             function(chr) {
+                                 
+                                 states.chr <-
+                                     states[states[, 1] == chr, i + 0:5]
+                                 ind.na <-
+                                     which(is.na(states.chr[, 6]))
+                                 kb <- states[states[, 1] == chr, 2]
+                                 pred <- states.chr[-ind.na, 4]
+                                 if (length(ind.na) > 0)
+                                 {
+                                     
+                                     kb.nonna <- kb[-ind.na]
+                                     ivals <-
+                                         sapply(kb[ind.na],
+                                                function(kb.obs)
+                                                pred[which.min(abs(kb.nonna -
+                                                                   kb.obs))])
+                                     states.chr[ind.na, 6] <- ivals
+                                     
+                                 }
+                                 states.chr[, 6]
+                                 
+                             }))
+               
+           })
+    
+}
+
 computeSD.Samples <-
     function(aCGH.obj, maxChrom = 22, maxmadUse = .3, maxmedUse = .5,
-             maxState = 3, minClone = 20)
+             maxState = 3, maxStateChange = 100, minClone = 20)
 {
 
     if (is.null(hmm.merged(aCGH.obj)))
@@ -292,7 +338,8 @@ function")
     computeSD.func(statesres = hmm.merged(aCGH.obj),
                    maxmadUse = maxmadUse, maxmedUse = maxmedUse,
                    maxState = maxState, minClone = minClone,
-                   maxChrom = maxChrom)
+                   maxChrom = maxChrom,
+                   maxStateChange = maxStateChange)
     
 }
 

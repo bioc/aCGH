@@ -1,18 +1,18 @@
-\name{human.chrom.info.Jul03}
-\alias{human.chrom.info.Jul03}
+\name{human.chrom.info.May04}
+\alias{human.chrom.info.May04}
 % \alias{ex.acgh.hmm}
 \docType{data}
 \title{
-  Basic Chromosomal Information for UCSC Human Genome Assembly July 2003
+  Basic Chromosomal Information for UCSC Human Genome Assembly May 2004
   freeze
 }
 \description{
   This dataset contains basic chromosomal information for UCSC Human
-  Genome Assembly July 2003 freeze.
-human.chrom.info.Jul03 is loaded automatically with the aCGH package.
+  Genome Assembly May 2004 freeze.
+human.chrom.info.May04 is loaded automatically with the aCGH package.
 }
 \usage{
-human.chrom.info.Jul03
+human.chrom.info.May04
 }
 
 \format{

@@ -23,7 +23,7 @@ impute.lowess(aCGH.obj, chrominfo = human.chrom.info.Jul03, maxChrom =
   Computes and returns the imputed log2 ratio matrix of the aCGH object.
 }
 \seealso{
-  \code{\link{aCGH}}
+  \code{\link{aCGH}}, \code{\link{impute.HMM}}.
 }
 \examples{
 

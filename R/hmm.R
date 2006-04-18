@@ -102,7 +102,7 @@ states.hmm.func <-
     zz <- vector(mode = "list", 5)
     zz[[1]] <-
         list(log.lik =
-             sum(dnorm(y, mean = mean(y), sd = sd(y), log = T)))
+             sum(dnorm(y, mean = mean(y), sd = sd(y), log = TRUE)))
     for(k in 2:5)
     {
         
@@ -354,7 +354,7 @@ mergeFunc <-
 
 computeSD.func <-
     function(statesres=states.bic, maxmadUse = .2, maxmedUse = .2,
-             maxState=3, maxStateChange = 10, minClone=20,
+             maxState=3, maxStateChange = 100, minClone=20,
              maxChrom=22)
 {
     ##1. maxmadUse : use state only if its mad <= maxmadUse (to avoid cases where

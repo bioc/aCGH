@@ -28,6 +28,7 @@
 \alias{hmm<-}
 \alias{hmm.merged}
 \alias{hmm.merged<-}
+% \alias{impute.HMM}
 \alias{sd.samples}
 \alias{sd.samples<-}
 \alias{genomic.events}
@@ -46,6 +47,7 @@
 \alias{prop.num.func}
 \alias{subset.hmm}
 \alias{subset.hmm.merged}
+\alias{ex.acgh.hmm}
 % \alias{as.eSet}
 
 \title{Class aCGH}
