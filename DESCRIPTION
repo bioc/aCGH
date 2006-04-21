@@ -14,4 +14,5 @@ Description: Functions for reading aCGH data from image analysis
 Maintainer: Jane Fridlyand <jfridlyand@cc.ucsf.edu>
 License: GPL
 SaveImage: yes
+biocViews: DNACopyNumber, DataImport, Genetics
 
