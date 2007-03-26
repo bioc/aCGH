@@ -358,19 +358,18 @@ plotFreqStat <-
              cutplot = 0, thres = .25, factor=2.5, ylm = c(-1, 1), 
 	     p.thres = c(.01, .05, .1), numaut = 22, onepage = TRUE,
              colored = TRUE
-             ){
+             )
+{
 
-#check if sd.samples are non-empty:
+    ##check if sd.samples are non-empty:
+    
     if (!is.null(sd.samples(aCGH.obj)) && (factor > 0))
-	{
-		thres <- factor*(sd.samples(aCGH.obj)$madGenome)
-	}
+        thres <- factor*(sd.samples(aCGH.obj)$madGenome)
+
     col.scheme <- 
         if (colored)
             list(pal =
-                 c("red", "blue", "green", "orange")[
-                                                     1:length(p.thres)
-                                                     ],
+                 c("red", "blue", "green", "orange")[1:length(p.thres)],
                  gain.low = "white",
                  gain.high = "green",
                  loss.low = "red",
@@ -380,13 +379,10 @@ plotFreqStat <-
                  mtext = "red",
                  kb.loc = "blue",
                  abline3 = "black",
-                 abline4 = "grey50",
-                 )
+                 abline4 = "grey50")
         else
             list(pal =
-                 c("grey10", "grey40", "grey70", "grey90")[
-                                                           1:length(p.thres)
-                                                           ],
+                 c("grey10", "grey40", "grey70", "grey90")[1:length(p.thres)],
                  gain.low = "grey50",
                  gain.high = "grey0",
                  loss.low = "grey0",
@@ -396,9 +392,8 @@ plotFreqStat <-
                  mtext = "black",
                  kb.loc = "black",
                  abline3 = "black",
-                 abline4 = "grey50",
-                 )
-	
+                 abline4 = "grey50")
+    
     data <- log2.ratios(aCGH.obj)
     datainfo <- clones.info(aCGH.obj)
     
