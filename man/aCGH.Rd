@@ -43,8 +43,8 @@
 \alias{maxna}
 \alias{corna}
 \alias{floor.func}
-\alias{length.num.func}
-\alias{prop.num.func}
+\alias{lengthNumFunc}
+\alias{propNumFunc}
 \alias{subset.hmm}
 \alias{subset.hmm.merged}
 \alias{ex.acgh.hmm}

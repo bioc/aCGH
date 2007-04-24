@@ -128,10 +128,6 @@ find.genomic.events")
     response.uniq <- sort(unique(resp.na))
     ge <- genomic.events(aCGH.obj)
 
-###    length.num.func <-
-###        function(x, num)
-###            sapply(num, function(nn) sum(x == nn & !is.na(x)))
-
     df.not.na <-
         data.frame(response = response,
                    numtrans =
@@ -154,12 +150,12 @@ find.genomic.events")
                    apply(ge$num.outliers.binary, 2, sum, na.rm = TRUE),
                    numchromgain =
                    apply(ge$whole.chrom.gain.loss[ 1:maxChrom, ], 2,
-                         length.num.func, 1),
+                         lengthNumFunc, 1),
 ###                   apply(ge$whole.chrom.gain[ 1:maxChrom, ], 2, sum,
 ###                         na.rm = TRUE),
                    numchromloss =
                    apply(ge$whole.chrom.gain.loss[ 1:maxChrom, ], 2,
-                         length.num.func, -1),
+                         lengthNumFunc, -1),
 ###                   apply(ge$whole.chrom.loss[ 1:maxChrom, ], 2, sum,
 ###                         na.rm = TRUE)
                    sizeamplicon =
@@ -232,7 +228,7 @@ find.genomic.events")
                                   ,which(resp.na == response.uniq[j])
                                   ],
                              1,
-                             prop.num.func,
+                             propNumFunc,
                              i
                              )
                        )
@@ -284,9 +280,9 @@ find.genomic.events")
         
         ind <- which(response == response.uniq[j])
         out.gain[ ,j ] <-
-            apply(matr[ ,ind ], 1, length.num.func, 1) / ncol(matr)
+            apply(matr[ ,ind ], 1, lengthNumFunc, 1) / ncol(matr)
         out.loss[ ,j ] <-
-            apply(matr[ ,ind ], 1, length.num.func, -1) / ncol(matr)
+            apply(matr[ ,ind ], 1, lengthNumFunc, -1) / ncol(matr)
         
     }
     mx.gain <- max(c(out.gain), na.rm = TRUE)

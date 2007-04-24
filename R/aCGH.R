@@ -21,42 +21,18 @@ phenotype differ!")
 }
 
 log2.ratios <- function(aCGH.obj) aCGH.obj$log2.ratios
-##"log2.ratios<-" <-
-##    function(aCGH.obj, value)
-##{
-
-##    if (!is.aCGH(aCGH.obj))
-##	stop("object is not of class aCGH")
-##    if (any(dim(value) != dim(aCGH.obj$log2.ratios)))
-##        stop("invalid replacement dimensions")
-##    aCGH.obj$log2.ratios <- value
-##    aCGH.obj
-
-##}
 
 clones.info <- function(aCGH.obj) aCGH.obj$clones.info
-##"clones.info<-" <-
-##    function(aCGH.obj, value)
-##{
 
-##    if (!is.aCGH(aCGH.obj))
-##	stop("object is not of class aCGH")
-##    if (any(dim(value) != dim(aCGH.obj$clones.info)))
-##        stop("invalid replacement dimensions")
-##    aCGH.obj$clones.info <- value
-##    aCGH.obj
+is.aCGH <- function(x) inherits(x, "aCGH")
 
-##}
-
-is.aCGH <- function(aCGH.obj) inherits(aCGH.obj, "aCGH")
-
-dim.aCGH <- function(aCGH.obj) dim(aCGH.obj$log2.ratios)
+dim.aCGH <- function(x) dim(x$log2.ratios)
 
 num.clones <- nrow.aCGH <-
-    function(aCGH.obj) nrow(aCGH.obj$log2.ratios)
+    function(x) nrow(x$log2.ratios)
 
 num.samples <- ncol.aCGH <-
-    function(aCGH.obj) ncol(aCGH.obj$log2.ratios)
+    function(x) ncol(x$log2.ratios)
 
 num.chromosomes <- function(aCGH.obj) length(unique(aCGH.obj$clones.info$Chrom))
 
@@ -678,18 +654,18 @@ subset.hmm.merged <-
 }
 
 "[.aCGH" <-
-    function(aCGH.obj, i, j, keep = FALSE)
+    function(x, i, j, keep = FALSE)
 {
     
     drop.i <- missing(i)
     drop.j <- missing(j)
     if (drop.i && drop.j)
-        aCGH.obj
+        x
     else
     {
 
         if (drop.i)
-            i <- 1:nrow(aCGH.obj)
+            i <- 1:nrow(x)
         else
             if (mode(i) == "logical")
                 i <- which(i)
@@ -697,47 +673,47 @@ subset.hmm.merged <-
                 if (mode(i) == "character")
                     i <- match(i, as.character(joan$clones.info$Clone))
         if (drop.j)
-            j <- 1:ncol(aCGH.obj)
+            j <- 1:ncol(x)
         else
             if (mode(j) == "logical")
                 j <- which(j)
         res <-
             if (keep)
-                list(log2.ratios = aCGH.obj$log2.ratios[i, j],
-                     clones.info = aCGH.obj$clones.info[ i, ],
+                list(log2.ratios = x$log2.ratios[i, j],
+                     clones.info = x$clones.info[ i, ],
                      qual.rep = NULL,
                      bad.quality.index = NULL,
                      log2.ratios.imputed =
-                     if (is.null(aCGH.obj$log2.ratios.imputed)) NULL
-                     else aCGH.obj$log2.ratios.imputed[i, j],
+                     if (is.null(x$log2.ratios.imputed)) NULL
+                     else x$log2.ratios.imputed[i, j],
                      sd.samples =
-                     if (is.null(aCGH.obj$sd.samples)) NULL
+                     if (is.null(x$sd.samples)) NULL
                      else 
-                     with(aCGH.obj$sd.samples,
+                     with(x$sd.samples,
                           list(madChrom = madChrom[ ,j ],
                                madGenome = madGenome[j]
                                )
                           ),
                      genomic.events =
-                     if (is.null(aCGH.obj$genomic.events)) NULL
+                     if (is.null(x$genomic.events)) NULL
                      else 
-                     lapply(aCGH.obj$genomic.events,
+                     lapply(x$genomic.events,
                             function(el)
                             if (is.matrix(el)) el[ ,j ]
                             else
                             lapply(el, function(el1) el1[i, j])
                             ),
                      hmm =
-                     subset.hmm(hmm(aCGH.obj), i = i, j = j,
+                     subset.hmm(hmm(x), i = i, j = j,
                                 chroms =
-                                which(table(clones.info(aCGH.obj)$Chrom[i]) > 0)
+                                which(table(clones.info(x)$Chrom[i]) > 0)
                                 ),
                      hmm.merged =
-                     subset.hmm.merged(hmm.merged(aCGH.obj), i = i,
+                     subset.hmm.merged(hmm.merged(x), i = i,
                                        j = j),
                      phenotype =
-                     if (is.null(aCGH.obj$phenotype)) NULL
-                     else aCGH.obj$phenotype[j, , drop = FALSE]
+                     if (is.null(x$phenotype)) NULL
+                     else x$phenotype[j, , drop = FALSE]
                      )
             else
             {
@@ -746,20 +722,20 @@ subset.hmm.merged <-
 #and phenotype. Please rerun the find.hmm.states function!")
 		warning("subsetting the log2.ratios only")
                 list(log2.ratios =
-                     aCGH.obj$log2.ratios[i, j, drop = FALSE],
+                     x$log2.ratios[i, j, drop = FALSE],
                      clones.info =
-                     aCGH.obj$clones.info[i, , drop = FALSE],
+                     x$clones.info[i, , drop = FALSE],
                      qual.rep = NULL,
                      bad.quality.index = NULL,
                      log2.ratios.imputed =
-                     if (is.null(aCGH.obj$log2.ratios.imputed)) NULL
-                     else aCGH.obj$log2.ratios.imputed[i, j, drop = FALSE],
+                     if (is.null(x$log2.ratios.imputed)) NULL
+                     else x$log2.ratios.imputed[i, j, drop = FALSE],
                      sd.samples = NULL,
                      genomic.events = NULL,
                      hmm = NULL,
                      phenotype =
-                     if (is.null(aCGH.obj$phenotype)) NULL
-                     else aCGH.obj$phenotype[j, , drop = FALSE]
+                     if (is.null(x$phenotype)) NULL
+                     else x$phenotype[j, , drop = FALSE]
                      )
 
             }
@@ -858,16 +834,16 @@ floor.func <-
     
 }
 
-length.num.func <-
+lengthNumFunc <-
     function(x, num)
     sapply(num, function(i) sum(x == i, na.rm = TRUE))
 
-prop.num.func <-
+propNumFunc <-
     function(x, num)
     sapply(num, function(i) mean(x == i, na.rm = TRUE))
 
 ##as.eSet <-
-##    function(aCGH.obj)
+##    function(x)
 ##{
 
 ##    ver <- R.Version()
@@ -877,13 +853,13 @@ prop.num.func <-
 ##    new.l2r <-
 ##        new("exprList",
 ##            .Data =
-##            list(exprs = log2.ratios(aCGH.obj),
-##                 log2.ratios.imputed = log2.ratios.imputed(aCGH.obj),
-##                 clones.info = clones.info(aCGH.obj),
-##                 hmm = hmm(aCGH.obj),
-##                 hmm.merged = hmm.merged(aCGH.obj),
-##                 sd.samples = sd.samples(aCGH.obj),
-##                 genomic.events = genomic.events(aCGH.obj)),
+##            list(exprs = log2.ratios(x),
+##                 log2.ratios.imputed = log2.ratios.imputed(x),
+##                 clones.info = clones.info(x),
+##                 hmm = hmm(x),
+##                 hmm.merged = hmm.merged(x),
+##                 sd.samples = sd.samples(x),
+##                 genomic.events = genomic.events(x)),
 ##            eMetadata =
 ##            data.frame(name =
 ##                       c("log2 ratios", "log2 ratios imputed",
@@ -896,7 +872,7 @@ prop.num.func <-
 ##                         "clone information", "integers",
 ##                         "integers", "random numbers",
 ##                         "integers")))
-##    pheno <- phenotype(aCGH.obj)
+##    pheno <- phenotype(x)
 ##    pheno.names <- colnames(pheno)
 ##    varLabels <-
 ##        lapply(1:ncol(pheno),
