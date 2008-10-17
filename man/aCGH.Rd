@@ -42,7 +42,7 @@
 \alias{minna}
 \alias{maxna}
 \alias{corna}
-\alias{floor.func}
+\alias{floorFunc}
 \alias{lengthNumFunc}
 \alias{propNumFunc}
 \alias{subset.hmm}

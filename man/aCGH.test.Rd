@@ -67,14 +67,8 @@ aCGH.test(aCGH.obj, rsp, test = c("survdiff","coxph",
     \code{index}.
   }
 }
-% \references{ ~put references to the literature/web site here ~ }
 \author{Peter Dimitrov}
-% \note{ ~~further notes~~ }
-
-%  ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{\code{\link{aCGH}}, \code{\link[survival]{Surv}}, \code{\link{mt.maxT}},
   \code{\link[survival]{coxph}}, \code{\link[survival]{survdiff}}, \code{\link{p.adjust}}}
-\examples{
-}
 \keyword{htest}

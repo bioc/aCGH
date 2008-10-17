@@ -822,7 +822,7 @@ corna <-
     function(x)
     cor(x, use = "pairwise.complete.obs")
 
-floor.func <-
+floorFunc <-
     function(x, floor, x.na = x[!is.na(x)])
 {
     x[!is.na(x)] <-

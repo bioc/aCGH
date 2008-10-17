@@ -167,7 +167,7 @@ maPalette <-
 
 ##flooring function. auxilliary function for image
 
-##floor.func <- function(x, floor)
+##floorFunc <- function(x, floor)
 ##{
 ##    x[x > floor & !is.na(x)] <- floor
 ##    x[x < -floor & !is.na(x)] <- -floor
@@ -236,7 +236,7 @@ plotvalChrom.func <-
 
 
         dt.cp <- dt
-        dt <- apply(dt.cp, 2,floor.func, cutoff)       
+        dt <- apply(dt.cp, 2,floorFunc, cutoff)       
         if (chrominfo$centr[chr] >0)
         {
             centr <- length(kb[kb<=chrominfo$centr[chr]])

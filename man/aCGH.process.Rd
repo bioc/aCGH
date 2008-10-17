@@ -22,10 +22,6 @@ aCGH.process(aCGH.obj, chrom.remove.threshold = 24,
     proportion of missing values \code{sample.quality.threshold}.}
   \item{unmapScreen}{Indicator for whether clones with incomplete mapping information should be removed from the dataset. Note that leaving them in may cause plotting routines fail. Defaults to TRUE}
    \item{dupRemove}{Indicator for whether clones with duplicate names should be averaged and removed from the dataset leaving only one occurence of each duplicated set.Defaults to TRUE}
-	
-
-  }
-  
 }
 \value{
   Object of class \code{aCGH}.

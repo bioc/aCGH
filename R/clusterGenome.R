@@ -72,7 +72,7 @@ clusterGenome <-
     }
 
     dt.cp <- data
-    dt <- apply(data, 2,floor.func, cutoff)    
+    dt <- apply(data, 2,floorFunc, cutoff)    
     
 
     dt <- dt[,order(resp)]

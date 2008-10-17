@@ -704,7 +704,7 @@ plotValGenome <-
     kb <- datainfo$kb
     data <- as.matrix(data)
     dt.cp <- data
-    dt <- apply(data, 2,floor.func, cutoff)    
+    dt <- apply(data, 2,floorFunc, cutoff)    
 ###    chromb <- rep(0,nrow(chrominfo))
     ##centrloc <- rep(0,nrow(chrominfo))
 ###    for (i in 1:nrow(chrominfo))
@@ -828,7 +828,7 @@ plotValChrom <-
         clonenms <- clonenames[datainfo$Chrom == chr]
         
         dt.cp <- dt
-        dt <- apply(dt.cp, 2, floor.func, cutoff)       
+        dt <- apply(dt.cp, 2, floorFunc, cutoff)       
         if (chrominfo$centr[chr] >0)
 ###            centr <- length(kb[kb<=chrominfo$centr[chr]])
             centr <- sum(kb <= chrominfo$centr[chr])
@@ -974,7 +974,7 @@ plotGene <-
 
     data <- as.matrix(data)
     dt.cp <- data
-    dt <- apply(data, 2, floor.func, cutoff)
+    dt <- apply(data, 2, floorFunc, cutoff)
     dt <- dt[ ,order(resp) ]
     resp0 <- resp0[ order(resp) ]
     samplenames <- samplenames[ order(resp) ]
@@ -1069,7 +1069,7 @@ plotGeneSign <-
 
     data <- as.matrix(data)
     dt.cp <- data
-    dt <- apply(data, 2,floor.func, cutoff)    
+    dt <- apply(data, 2,floorFunc, cutoff)    
 
     dt <- dt[,order(resp)]
     resp0 <- resp0[order(resp)]
