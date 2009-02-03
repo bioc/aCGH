@@ -50,8 +50,8 @@ find.hmm.states(aCGH.obj, ...)
   One or more model selection criterion is used to determine number of
   states on each chromosomes. If several are specified, then a separate
   matrix is produced for each criterion used. Delta is a fudge factor in
-  BIC criterion: $\delta BIC(\gamma) = \log RSS(\gamma) +
-  q_{\gamma}\delta\log n/n.$ Note that delta = NA leads to conventional
+  BIC criterion: \eqn{\delta BIC(\gamma) = \log RSS(\gamma) +
+  q_{\gamma}\delta\log n/n.} Note that delta = NA leads to conventional
   BIC. (Broman KW, Speed TP (2002) A model selection approach for the
   identification of quantitative trait loci in experimental crosses
   (with discussion). J Roy Stat Soc B 64:641-656, 731-775 )
