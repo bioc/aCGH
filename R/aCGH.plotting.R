@@ -1085,7 +1085,7 @@ plotGeneSign <-
     {
 	
 	ind <- which(resp == i)
-        ##cr <- as.dist(1-cor.na(data[,ind]))
+        ##cr <- as.dist(1-cor(data[,ind], use = "pairwise.complete.obs"))
 	cr <- dist(t(data[,ind]))
 	ord[start:sum(tbl.resp[1:i])] <- hclust(cr, method=method)$ord+start-1
 	start <- sum(tbl.resp[1:i])+1

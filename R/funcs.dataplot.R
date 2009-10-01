@@ -256,7 +256,7 @@ plotvalChrom.func <-
         {
             
             ind <- which(resp == i)
-            cr <- as.dist(1-cor.na(dt.cp[,ind]))
+            cr <- as.dist(1-cor(dt.cp[,ind], use = "pairwise.complete.obs"))
             ord[start:sum(tbl.resp[1:i])] <- hclust(cr, method="ave")$ord+start-1
             start <- sum(tbl.resp[1:i])+1
         }
@@ -350,7 +350,7 @@ plotvalChrom.func <-
 ##    n <- ncol(X)
 ##    corr <- X
 ##    if (new)
-##        corr <- cor.na(X)
+##        corr <- cor(X, use = "pairwise.complete.obs")
 ##    image(1:n, 1:n, corr[, n:1], col = maPalette(low = "red", high = "green", mid = "black", k=nrgcols),
 ##          axes = FALSE, xlab = "", ylab = "",...)
 ##    if (length(labcols) == 1) {
