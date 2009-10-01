@@ -360,6 +360,13 @@ plotFreqStat <-
              colored = TRUE
              )
 {
+    is.even <- function (x) 
+    {
+        if (is.numeric(x))
+            (x%%2 == 0) 
+        else
+            stop("'x' must be an integer value")
+    }
 
     ##check if sd.samples are non-empty:
     
