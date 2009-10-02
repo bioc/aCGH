@@ -48,6 +48,8 @@
 \alias{subset.hmm}
 \alias{subset.hmm.merged}
 \alias{ex.acgh.hmm}
+\alias{is.odd}
+\alias{is.even}
 % \alias{as.eSet}
 
 \title{Class aCGH}

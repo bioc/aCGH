@@ -7,8 +7,6 @@
 
 using namespace std;
 
-const double really_small_num = -1000000000.;
-
 double
 calc_observed_likelihood_iter(vector< vector<double> > &yll, 
 							  vector< vector<double> > &tpm,
@@ -122,7 +120,7 @@ calc_complete_likelihood(vector< vector<double> > &yll, vector< vector<double> >
 		{
 
 			int best_ind = 0;
-			double s = really_small_num;
+			double s = R_NegInf;
 			
 			for(int j = 0; j < k; j++)
 			{
@@ -176,7 +174,7 @@ extern "C"
 			for(int j = 0, offs = 0; j < k; j++, offs += k)
 				tpm[i][j] = log(TPM[offs + i]);
 
-		*_log_lik = really_small_num;
+		*_log_lik = R_NegInf;
 		int iter = 0;
 		
 		while(iter < *maxiter)

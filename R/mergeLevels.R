@@ -160,7 +160,7 @@ combine.func <- function(diff,vecObs, vecPredNow, mnNow, mn1, mn2, pv.thres=0.00
                 if((length(vec1) > 10 & length(vec2) > 10) | sum(length(vec1),length(vec2))>100){
                         pv=wilcox.test(vec1,vec2)$p.value
                 }
-                else{pv=wilcox.test(vec1,vec2,exact=T)$p.value  }       #/10^max(mn1,mn2)
+                else{pv=wilcox.test(vec1,vec2,exact=TRUE)$p.value  }       #/10^max(mn1,mn2)
                 if(length(vec1) <= 3 | length(vec2) <= 3){pv=0}         
         }
         index.merged<-numeric()

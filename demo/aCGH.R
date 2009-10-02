@@ -1,10 +1,9 @@
 
-if(dev.cur() <= 1) get(getOption("device"))()
+## if(dev.cur() <= 1) get(getOption("device"))()
 
 opar <-
     par(ask = interactive() &&
-        (.Device %in% c("X11", "GTK", "windows","quartz"))
-        )
+        (.Device %in% c("X11", "GTK", "windows","quartz")))
 
 ## Reading Sproc files
 

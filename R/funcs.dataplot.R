@@ -140,7 +140,7 @@ maPalette <-
 ##par(bg="grey20")    
 ##lm <- 1
 ##k <- 50
-##maColorBar(x=seq(-lm,lm,len=k), col = maPalette(low="red", high="green", mid="white", k=k), h=T)  
+##maColorBar(x=seq(-lm,lm,len=k), col = maPalette(low="red", high="green", mid="white", k=k), h=TRUE)  
 ##dev.off()
 ##
 
@@ -188,8 +188,8 @@ maPalette <-
 ##cutoff- where to cut-off the values too. Lower values make image colors brighter. 
 ##amplif -- anything >= is marked with yellow dots
 ##homde -- anything <= is marked with light blue dots
-##bycllass-- whether to order samples and cluster them inside the class (T) or cluster
-##all samples (F). Clustering is done using agglom. hierachical clustering with average
+##bycllass-- whether to order samples and cluster them inside the class (TRUE) or cluster
+##all samples (FALSE). Clustering is done using agglom. hierachical clustering with average
 ##linkage
 ##samplenames-- shown on the right. anything can be there
 ##clonenames -- names of the clones. Shown on the bottom
@@ -256,7 +256,7 @@ plotvalChrom.func <-
         {
             
             ind <- which(resp == i)
-            cr <- as.dist(1-cor(dt.cp[,ind], use = "pairwise.complete.obs"))
+            cr <- as.dist(1-corna(dt.cp[,ind]))
             ord[start:sum(tbl.resp[1:i])] <- hclust(cr, method="ave")$ord+start-1
             start <- sum(tbl.resp[1:i])+1
         }
@@ -339,7 +339,7 @@ plotvalChrom.func <-
 ##plots images of correlation matrices
 
 ##X -- is p by n data matrix or p by p correlation matrix 
-##new =TRUE if correlation matrix and F if data matrix and correlation needs to be computed
+##new =TRUE if correlation matrix and FALSE if data matrix and correlation needs to be computed
 ##
 
 ##plot.my.cor <-
@@ -350,7 +350,7 @@ plotvalChrom.func <-
 ##    n <- ncol(X)
 ##    corr <- X
 ##    if (new)
-##        corr <- cor(X, use = "pairwise.complete.obs")
+##        corr <- corna(X)
 ##    image(1:n, 1:n, corr[, n:1], col = maPalette(low = "red", high = "green", mid = "black", k=nrgcols),
 ##          axes = FALSE, xlab = "", ylab = "",...)
 ##    if (length(labcols) == 1) {
@@ -1038,7 +1038,7 @@ plotCGH.func <-
 ##thres -- unique threshold or vector of tumor specific thresholds. In the latter
 ##case has to contain as many thershold as samples
 ##cutplot -- don't plots clones which gained/lost in fewer than <= fraction of cases
-##sign -- to do significance comparison (T) or not (F). to do comparison uses
+##sign -- to do significance comparison (TRUE) or not (FALSE). to do comparison uses
 ##multtest package
 ##nperm -- if sign =TRUE, then how many permutations for maxT
 ##test -- name of the test
@@ -1072,16 +1072,11 @@ plotfreq.stat.final.func <-
 
 
     if (nrow(colmatr) == 1)
-    {
-	sign <- F
-    }
+	sign <- FALSE
 
     nr <- nrow(colmatr)
     if (sign)
-    {	
 	nr <- nr+1
-	
-    }
 
     tmp <- matrix(0, ncol=2,nrow=1)   
     tmp <- as.data.frame(tmp) 
@@ -1300,7 +1295,7 @@ plotfreq.stat.final.func <-
 ##levels in the response
 ##thres -- unique threshold or vector of tumor specific thresholds. In the latter
 ##case has to contain as many thershold as samples
-##sign -- to do significance comparison (T) or not (F). to do comparison uses
+##sign -- to do significance comparison (TRUE) or not (FALSE). to do comparison uses
 ##multtest package
 ##nperm -- if sign =TRUE, then how many permutations for maxT
 ##test -- name of the test
@@ -1329,15 +1324,11 @@ plotfreq.stat.chrom.final.func <-
     pal <- c("red", "blue", "green", "yellow")
 
     if (nrow(colmatr) == 1)
-    {
-	sign <- F
-    }
+	sign <- FALSE
 
     nr <- nrow(colmatr)
     if (sign)
-    {	
 	nr <- nr+1
-    }
 
     tmp <- matrix(0, ncol=2,nrow=1)   
     tmp <- as.data.frame(tmp) 
@@ -1468,7 +1459,7 @@ plotfreq.stat.chrom.final.func <-
 ##thres -- unique threshold or vector of tumor specific thresholds. In the latter
 ##case has to contain as many thershold as samples
 ##cutplot -- don't plots clones which gained/lost in fewer than <= fraction of cases
-##sign -- to do significance comparison (T) or not (F). to do comparison uses
+##sign -- to do significance comparison (TRUE) or not (FALSE). to do comparison uses
 ##multtest package
 ##nperm -- if sign =TRUE, then how many permutations for maxT
 ##test -- name of the test
@@ -1517,7 +1508,7 @@ plotfreq.stat.chrom.final.func <-
 
 ##if (nrow(colmatr) == 1)
 ##{
-##	sign <- F
+##	sign <- FALSE
 ##}
 
 ##nr <- nrow(colmatr)
@@ -1795,7 +1786,7 @@ plotfreq.stat.chrom.final.func <-
 ##thres -- unique threshold or vector of tumor specific thresholds. In the latter
 ##case has to contain as many thershold as samples
 ##cutplot -- don't plots clones which gained/lost in fewer than <= fraction of cases
-##sign -- to do significance comparison (T) or not (F). to do comparison uses
+##sign -- to do significance comparison (TRUE) or not (FALSE). to do comparison uses
 ##multtest package
 ##nperm -- if sign =TRUE, then how many permutations for maxT
 ##test -- name of the test
@@ -1847,16 +1838,11 @@ plotfreq.givenstat.final.colors.func <-
     matr.colors.gain <- data.frame(sq.gain[-length(sq.gain)], sq.gain[-1], colors.gain)
 
     if (nrow(colmatr) == 1)
-    {
-	sign <- F
-    }
+	sign <- FALSE
 
     nr <- nrow(colmatr)
     if (sign)
-    {	
 	nr <- nr+1
-	
-    }
 
     tmp <- matrix(0, ncol=2,nrow=1)   
     tmp <- as.data.frame(tmp) 

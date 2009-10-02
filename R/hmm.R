@@ -59,17 +59,23 @@ hmm.run.func <-
             
             cat(j, " ")
             
-            res <- try(states.hmm.func(sample=i, chrom=j, dat=dat, datainfo=datainfo,vr=vr, maxiter=maxiter, aic=aic, bic=bic, delta=delta, nlists=nlists, eps = eps))
-            
-            for (m in 1:nlists)
-            {
-                
-                
-                states.list[[m]][((1:nrow(states))[states[,1]==j]),colstart:colend] <- as.matrix(res$out.list[[m]])
-                nstates.list[[m]][j,i] <- res$nstates.list[[m]]
-            }
-            
-            
+            res <-
+                try(states.hmm.func(sample=i, chrom=j, dat=dat,
+                                    datainfo=datainfo,vr=vr,
+                                    maxiter=maxiter, aic=aic, bic=bic,
+                                    delta=delta, nlists=nlists, eps = eps))
+            if (!(inherits(res, "try-error")))
+                for (m in 1:nlists)
+                {
+
+                    states.list[[m]][((1:nrow(states))[states[,1]==j]),colstart:colend] <-
+                        as.matrix(res$out.list[[m]])
+                    nstates.list[[m]][j,i] <- res$nstates.list[[m]]
+
+                }
+            else
+                stop("hmm fit failed!\n")
+
         }
         cat("\n")
         

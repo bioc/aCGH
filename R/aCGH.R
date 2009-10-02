@@ -822,6 +822,76 @@ corna <-
     function(x)
     cor(x, use = "pairwise.complete.obs")
 
+## ###########################################################################
+## # Code copied and added to aCGH package from sma
+## # (Statistics for Microarray Analysis) package
+## # by Peter Dimitrov Oct. 2nd 2009
+## #
+## # Misc. functions
+## #
+## # Date : March 19, 2001
+## #
+## # Authors: Yee Hwa (Jean) Yang and Jessica Mar
+## ##########################################################################
+
+########################################################################/** 
+# \name{is.odd}
+# \alias{is.odd}
+# \alias{is.even}
+# 
+# \title{ Determining if a Value is Odd or Even }
+# \description{
+# A logical flag which determines if a value supplied by the user is
+# odd or even. 
+# }
+# \usage{
+# is.odd(x)
+# is.even(x)
+# }
+# 
+# \arguments{
+#  \item{x}{integer value}
+# }
+# 
+# }
+# \value{Logical vectors \code{TRUE} or \code{FALSE} are returned
+#   depending on whether the value is odd or even.
+# 
+# }
+# 
+# \author{ Jessica Mar }
+# 
+# \examples{
+# is.odd(4)
+# ## FALSE
+# is.even(100)
+# ## TRUE
+# }
+# 
+# \keyword{odd, even}
+#*/########################################################################
+
+is.even <- function(x)
+  {if(is.numeric(x))
+     {if (x %% 2==0) {TRUE}
+      else {FALSE}
+     }
+   
+   else{
+       print("Warning: Input must be an integer value")
+     } 
+ }
+
+is.odd <- function(x)
+  {if(is.numeric(x))
+    {if (x %% 2 == 0) {FALSE}
+     else {TRUE}}
+ 
+   else{
+       print("Warning: Input must be an integer value")
+     }
+ }
+
 floorFunc <-
     function(x, floor, x.na = x[!is.na(x)])
 {
