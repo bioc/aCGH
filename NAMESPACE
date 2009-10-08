@@ -28,11 +28,9 @@ importFrom(stats, ansari.test, approx, as.dendrogram, as.dist, as.ts,
            residuals, sd, start, summary.glm, symnum, terms, time, ts,
            tsp, var, vcov, wilcox.test, write.ftable)
 
-importFrom(survival, cluster, coxph, survdiff)
-
 importFrom(utils, browseURL, menu, read.table, str, toBibtex,
            zip.file.extract)
 
-importFrom(survival, survreg.distributions)
+importFrom(survival, coxph, cluster, survdiff, survreg.distributions)
 
 exportPattern("^[^\\.]")
