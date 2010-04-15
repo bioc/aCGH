@@ -669,9 +669,6 @@ subset.hmm.merged <-
         else
             if (mode(i) == "logical")
                 i <- which(i)
-            else
-                if (mode(i) == "character")
-                    i <- match(i, as.character(joan$clones.info$Clone))
         if (drop.j)
             j <- 1:ncol(x)
         else

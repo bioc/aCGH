@@ -10,8 +10,8 @@
 \usage{
 computeSD.Samples(aCGH.obj, maxChrom = 22, maxmadUse = .3,
                   maxmedUse = .5, maxState = 3, maxStateChange = 100,
-minClone = 20)
-computeSD.func(statesres = states.bic, maxmadUse = 0.2, maxmedUse = 0.2,
+				  minClone = 20)
+computeSD.func(statesres, maxmadUse = 0.2, maxmedUse = 0.2,
                maxState = 3, maxStateChange = 100, minClone = 20,
                maxChrom = 22)
 }

@@ -261,7 +261,7 @@ states.hmm.func <-
 #####################################################################
 
 mergeFunc <-
-    function(statesres = states.bic, minDiff = .1)
+    function(statesres, minDiff = .1)
 {
     ##merging states which are too close to each other to avoid showing technical
     ##rather than biological artifacts.
@@ -359,7 +359,7 @@ mergeFunc <-
 #################################################################################
 
 computeSD.func <-
-    function(statesres=states.bic, maxmadUse = .2, maxmedUse = .2,
+    function(statesres, maxmadUse = .2, maxmedUse = .2,
              maxState=3, maxStateChange = 100, minClone=20,
              maxChrom=22)
 {
@@ -442,7 +442,7 @@ samples\n")
 
 
 findOutliers.func <-
-    function(thres=madGenome, factor=4, statesres=states.bic)
+    function(thres, factor=4, statesres)
 {
     ##"state", "rpred", "prob", "pred", "disp", "obs"
     
@@ -529,7 +529,7 @@ findOutliers.func <-
 #################################
 
 findAber.func <-
-    function(maxClones = 1, maxLen = 1000, statesres = states.bic)
+    function(maxClones = 1, maxLen = 1000, statesres)
 {
     ##either fewer than maxClones or length <= maxLen. 
 
@@ -612,7 +612,7 @@ findAber.func <-
 #################################
 
 findTrans.func <-
-    function(outliers=res1$outliers, aber=res2$aber, statesres=states.bic)
+    function(outliers, aber, statesres)
 {
 
     ##exclude aberrations but keep outliers in
@@ -690,7 +690,9 @@ findTrans.func <-
 #################################
 
 findAmplif.func <-
-    function(absValSingle = 1, absValRegion = 1.5, diffVal1=1, diffVal2 = .5, maxSize =  10000, translen.matr = res3$translen.matrix, trans.matr = res3$trans.matr, aber = res2$aber, outliers= res1$outlier, pred = res1$pred.out, pred.obs = res1$pred.obs.out, statesres=states.bic)
+    	function(absValSingle = 1, absValRegion = 1.5, diffVal1=1,
+    			diffVal2 = .5, maxSize =  10000, translen.matr, 
+				trans.matr, aber, outliers, pred, pred.obs, statesres)
 {
     chrom <- statesres[,1]
     kb <- statesres[,2]
@@ -797,12 +799,9 @@ findAmplif.func <-
 ######################################
 
 plotChrom.hmm.func <-
-    function(sample, chr,  statesres=states.bic, amplif = res4$amplif,
-             aber=res2$aber, outliers = res1$outlier, trans =
-             res3$trans.matr, pred = res1$pred.out,  yScale = c(-2,2),
-             maxChrom=23, chrominfo=chrominfo, samplenames, namePSfile
-             = "try.ps", ps = TRUE, plotend = TRUE
-             )
+    function(sample, chr, statesres, amplif, aber, outliers, trans,
+    		pred, yScale = c(-2,2), maxChrom = 23, chrominfo,
+    		samplenames, namePSfile = "try.ps", ps = TRUE, plotend = TRUE)
 {
 
     chrom.rat <- chrominfo$length/max(chrominfo$length)
@@ -953,11 +952,9 @@ plotChrom.hmm.func <-
 ##################################
 
 plotCGH.hmm.func <-
-    function (data=dat, datainfo=clones.info, chrominfo=chrominfo,
-              samplename, sampNm=sampleNames, yScale = c(-2,2),
-              namePSfile = "try.ps", ps = TRUE, statesres=states.bic,
-              amplif = res4$amplif, aber=res2$aber, outliers =
-              res1$outlier, trans = res3$trans.matr)
+    function (data, datainfo, chrominfo, samplename, sampNm,
+    		  yScale = c(-2, 2), namePSfile = "try.ps", ps = TRUE,
+    		  statesres, amplif, aber, outliers, trans)
 {
 ################General Comments############################################
 
@@ -1189,93 +1186,10 @@ plotCGH.hmm.func <-
 
 }
 
-##################################
-##################################
-##FIX missing values further down
-
-##smoothData.func <-
-##    function(statesres = states.bic, aber = res2$aber,
-##             outliers = res1$outlier)
-##{
-##    sq.obs <- seq(8, ncol(statesres), b=6)
-##    data.smooth <- pred
-##    for (i in 1:length(sq.obs))
-##    {
-##        obs <- states.bic[,sq.obs[i]]
-##        if (length(aber[,i][aber[,i] ==1]) >0)
-##        {
-##            data.smooth[aber[,i]==1,i] <- obs[aber[,i]==1]
-##        }
-##        if (length(outliers[,i][outliers[,i] ==1]) >0)
-##        {
-##            data.smooth[outliers[,i]==1,i] <- obs[outliers[,i]==1]
-##        }
-##    }
-##    list(data.smooth = data.smooth)
-    
-    
-
-##}
-##################################
-##################################
-##################################
-##################################
-
-##thresholdData.func <-
-##    function(statesres = states.bic, amplif = res4$amplif,
-##             aber = res2$aber, outliers = res1$outlier,
-##             pred = res1$pred.out, noise = madGenome, factor = 2.5,
-##             minMed = .1, thresSingle = FALSE)
-##{
-    
-##    thres <- noise*factor	
-
-##    if (length(minMed) ==1)
-##    {
-##        minMed <- rep(minMed, length(thres))
-##    }
-
-##    sq.obs <- seq(8, ncol(statesres), b=6)
-##    data.thres <- matrix(0, nrow=nrow(pred), ncol=ncol(pred))
-##    for (i in 1:length(sq.obs))
-##    {
-##        obs <- states.bic[,sq.obs[i]]
-##        if (thresSingle)
-##        {
-##            ##if use individual thresholds for each clone
-            
-##            data.thres[obs >= thres.i] <- 1
-##            data.thres[obs <= -thres,i] <- -1
-            
-##        }
-##        else
-##        {
-##            ##use individual thresholds for outliers and aberrations only
-##            data.thres[(aber[,i]==1 | outliers[,i]==1) & obs >= thres ,i] <- 1
-##            data.thres[(aber[,i]==1 | outliers[,i]==1) & obs <= -thres,i ] <- -1
-##            data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] >=  minMed[i] ,i] <- 1
-##            data.thres[(aber[,i]==0 & outliers[,i]==0) & pred[,i] <= -minMed[i] ,i] <- -1
-            
-            
-##        }
-        
-##    }
-##    list(data.thres = data.thres)
-    
-    
-
-##}
-##################################
-##################################
-
-######################################
-######################################
-
 plotChrom.samples.func <-
-    function(nr, nc, sample, chr,  statesres=states.bic, amplif =
-             res4$amplif, aber=res2$aber, outliers = res1$outlier,
-             trans = res3$trans.matr, pred = res1$pred.out,  yScale =
-             c(-2,2), maxChrom=23, chrominfo=human.chrom.info.Jul03,
+    function(nr, nc, sample, chr, statesres, amplif, aber,
+    		 outliers, trans, pred, yScale = c(-2, 2), 
+			 maxChrom = 23, chrominfo = human.chrom.info.Jul03,
              samplenames)
 {
 
@@ -1372,19 +1286,12 @@ plotChrom.samples.func <-
     } 
 
 }
-##################################
-##################################
-
-
-######################################
-######################################
 
 plotChrom.grey.samples.func <-
-    function(nr, nc, sample, chr,  statesres=states.bic, amplif =
-             res4$amplif, aber=res2$aber, outliers = res1$outlier,
-             trans = res3$trans.matr, pred = res1$pred.out,  yScale =
-             c(-2,2), maxChrom=23, chrominfo=human.chrom.info.Jul03,
-             samplenames)
+    function(nr, nc, sample, chr,  statesres, amplif, aber,
+    		outliers, trans, pred, yScale = c(-2, 2), 
+			maxChrom = 23, chrominfo = human.chrom.info.Jul03,
+            samplenames)
 {
 
     par(mfrow=c(nr,nc))

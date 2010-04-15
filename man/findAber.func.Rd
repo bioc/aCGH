@@ -6,7 +6,7 @@
   The function identifies clones that are focal aberrations.
 }
 \usage{
-findAber.func(maxClones = 1, maxLen = 1000, statesres = states.bic)
+findAber.func(maxClones = 1, maxLen = 1000, statesres)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

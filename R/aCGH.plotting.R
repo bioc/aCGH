@@ -117,7 +117,8 @@ plotSummaryProfile <-
              titles = unique(response[!is.na(response)]), X = TRUE,
              Y = FALSE, maxChrom = 23,
              chrominfo = human.chrom.info.Jul03,
-             num.plots.per.page = length(titles), factor = 2.5, posThres=100, negThres=-0.75)
+             num.plots.per.page = length(titles), factor = 2.5, 
+			 posThres = 100, negThres = -0.75)
 {
 
     if (is.null(genomic.events(aCGH.obj)))
@@ -1148,7 +1149,9 @@ plotGeneSign <-
 	pal <- c("red", "green", "yellow", "blue")
 	pal <- pal[1:length(p.thres)]
 	
-	res <-  mt.maxT(X=dataSign, classlabel=phen,test=test,side=side,fixed.seed.sampling="y",B=nperm, na=.mt.naNUM, nonpara=ranks)
+	res <-  
+			mt.maxT(X=dataSign, classlabel=phen,test=test,side=side,
+					fixed.seed.sampling="y",B=nperm, na = multtest::.mt.naNUM, nonpara=ranks)
 	maxT <- res$adjp[order(res$index)]	
 	
         ##rawp <- res$rawp[order(res$index)]

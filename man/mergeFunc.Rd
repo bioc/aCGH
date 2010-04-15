@@ -12,7 +12,7 @@
 }
 \usage{
 mergeHmmStates(aCGH.obj, model.use = 1, minDiff = 0.25)
-mergeFunc(statesres = states.bic, minDiff = 0.1)
+mergeFunc(statesres, minDiff = 0.1)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

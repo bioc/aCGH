@@ -193,7 +193,7 @@ fga.func <-	function(aCGH.obj, thres=0.25, factor=2.5, samplenames = sample.name
 
 
 changeProp.func <-
-    function(dat = data.screen.norm.thres, colMatr)
+    function(dat, colMatr)
 {
     
     out <- matrix(0, nrow = nrow(dat), ncol = nrow(colMatr))
@@ -343,11 +343,11 @@ of samples")
 
 plotFreqStatColors <-
     function(aCGH.batch, resT, pheno, colored = TRUE, ...)
-    plotfreq.stat(aCGH.batch, resT, pheno, colored = TRUE, ...)
+    plotFreqStat(aCGH.batch, resT, pheno, colored = TRUE, ...)
 
 plotFreqStatGrey <-
     function(aCGH.batch, resT, pheno, colored = FALSE, ...)
-    plotfreq.stat(aCGH.batch, resT, pheno, colored = FALSE, ...)
+    plotFreqStat(aCGH.batch, resT, pheno, colored = FALSE, ...)
 
 plotFreqStat <-
     function(aCGH.obj, resT = NULL, pheno = rep(1, ncol(aCGH.obj)),
@@ -356,9 +356,8 @@ plotFreqStat <-
              all = length(rsp.uniq) == 1 && is.null(resT),
              titles = if (all) "All Samples" else rsp.uniq,
              cutplot = 0, thres = .25, factor=2.5, ylm = c(-1, 1), 
-	     p.thres = c(.01, .05, .1), numaut = 22, onepage = TRUE,
-             colored = TRUE
-             )
+	     	 p.thres = c(.01, .05, .1), numaut = 22, onepage = TRUE,
+             colored = TRUE)
 {
     is.even <- function (x) 
     {

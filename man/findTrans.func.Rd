@@ -7,8 +7,7 @@
   the constant estimated copy number).
 }
 \usage{
-findTrans.func(outliers = res1$outliers, aber = res2$aber, statesres =
-states.bic)
+findTrans.func(outliers, aber, statesres)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

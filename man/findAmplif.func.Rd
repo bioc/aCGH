@@ -10,10 +10,8 @@
 }
 \usage{
 findAmplif.func(absValSingle = 1, absValRegion = 1.5, diffVal1 = 1,
-diffVal2 = 0.5, maxSize = 10000, translen.matr = res3$translen.matrix,
-trans.matr = res3$trans.matr, aber = res2$aber, outliers = res1$outlier,
-pred = res1$pred.out, pred.obs = res1$pred.obs.out, statesres =
-states.bic)
+diffVal2 = 0.5, maxSize = 10000, translen.matr, trans.matr, aber,
+outliers, pred, pred.obs, statesres)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{

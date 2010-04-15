@@ -6,12 +6,11 @@
   The function identified the clones that are outliers.
 }
 \usage{
-findOutliers.func(thres = madGenome, factor = 4, statesres = states.bic)
+findOutliers.func(thres, factor = 4, statesres)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{thres}{Estimate of experimental variability, generally,
-    madGenome}
+  \item{thres}{Estimate of experimental variability, generally, madGenome}
   \item{factor}{Factor indicating how many standard}
   \item{statesres}{The states output of the \code{\link{hmm.run.func}}}
 }

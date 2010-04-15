@@ -680,9 +680,9 @@ plotvalChrom.func <-
 ##whatToPlot: "All" -- all chromosomes and Gneome/ "G" -- Genome or chromosomal number
 
 plotCGH.func <-
-    function (data=data.cgh, map=map.cgh, chrominfo=human.chrom.info.Jul03,
-              samplename, sampNm=sampleNames, whatToPlot= "All",
-              yScale = c(-2,2), namePSfile = "plotCGH.ps")
+    function (data, map, chrominfo = human.chrom.info.Jul03,
+              samplename, sampNm, whatToPlot = "All",
+              yScale = c(-2, 2), namePSfile = "plotCGH.ps")
 {
 ################General Comments############################################
     ##Jane Fridlyand, 08/13/2001
@@ -970,60 +970,6 @@ plotCGH.func <-
 
 }
 
-#################################################################################
-#################################################################################
-##auxilliary function for frequency plot
-
-##gainLoss <- function (dat, cols,thres, quant=.5)
-##{
-
-##if (length(thres) == 1)
-##{
-
-##	thres <- rep(thres, ncol(dat))
-##}
-##if (length(thres) != ncol(dat))
-##{
-##	print("Error: number of thresholds is not the same as number of tumors")
-##	exit()
-##}
-
-##dt <- as.matrix(dat[,cols])
-##thr <- thres[cols]
-##gain <- rep(0, nrow(dt))
-##gain.med <- gain
-##loss <- rep(0, nrow(dt))
-##loss.med <- loss
-
-##for (i in 1:nrow(dt))
-##{
-##	x <- dt[i,]
-##	th <- thr[!is.na(x)]
-##	x <- x[!is.na(x)]
-##	tmp.gain <- x-th
-##	tmp.loss <- x+th
-##	gain[i] <- length(tmp.gain[tmp.gain>=0])/length(x)
-##	if (gain[i] > 0)
-##	{
-##		#gain.med[i] <- median(x[tmp.gain>=0])
-##		gain.med[i] <- quantile(x[tmp.gain>=0], 1-quant)
-##	}
-##	loss[i] <- length(tmp.loss[tmp.loss<=0])/length(x)
-##	if (loss[i] > 0)
-##	{
-##		#loss.med[i] <- median(x[tmp.loss<=0])
-##		loss.med[i] <- quantile(x[tmp.loss<=0], quant)
-##	}
-##}
-
-##list(gainP=gain, lossP=loss, gainMed=gain.med, lossMed=loss.med)
-
-##}
-#################################################################################
-#################################################################################
-
-
-
 ##################################################################################
 ##################################################################################
 
@@ -1087,7 +1033,7 @@ plotfreq.stat.final.func <-
     {
 	
 	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres)
+	gainloss[[j]] <- gainLoss(dat = data, cols = cols, thres = thres)
 	
     }
 
@@ -1101,7 +1047,10 @@ plotfreq.stat.final.func <-
             rsp <- c(rsp, rep(j, ncol(dataSign[,colmatr[j,]==1])))
 	}
 	rsp <- rsp-1
-	res <-  mt.maxT(X=dt,classlabel=rsp,test=test,side=side,fixed.seed.sampling="y",B=nperm, na=.mt.naNUM, nonpara=ranks)
+	res <- 
+			mt.maxT(X=dt,classlabel=rsp,test=test,side=side,
+					fixed.seed.sampling = "y", B=nperm, 
+					na = multtest::.mt.naNUM, nonpara=ranks)
 	maxT <- res$adjp[order(res$index)]
         ##rawp <- res$rawp[order(res$index)]
 	teststat <- abs(res$teststat[order(res$index)])
@@ -1306,10 +1255,10 @@ plotfreq.stat.final.func <-
 ##PS = "ps" or "pdf"
 
 plotfreq.stat.chrom.final.func <-
-    function(data, rsp, chrom, datainfo, chrominfo, titles, thres=.2,
-             ylm=c(-1,1), sign=TRUE, nperm=1000, test="f", ranks="y",
-             side="abs", p.thres=c(.01,.05,.1,.2), dataSign=data,
-             filePS="gainslosses.ps", PS="ps", onepage=TRUE)
+    function(data, rsp, chrom, datainfo, chrominfo, titles, thres = .2,
+             ylm = c(-1, 1), sign = TRUE, nperm = 1000, test = "f", ranks = "y",
+             side = "abs", p.thres = c(.01, .05, .1, .2), dataSign = data,
+             filePS = "gainslosses.ps", PS = "ps", onepage = TRUE)
 {
 ##########compute gainloss functions:
     rsp.uniq <- unique(rsp)
@@ -1339,7 +1288,7 @@ plotfreq.stat.chrom.final.func <-
     {
 	
 	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres)
+	gainloss[[j]] <- gainLoss(dat = data, cols = cols, thres = thres)
 	
     }
 
@@ -1353,7 +1302,10 @@ plotfreq.stat.chrom.final.func <-
             rsp <- c(rsp, rep(j, ncol(dataSign[,colmatr[j,]==1])))
 	}
 	rsp <- rsp-1
-	res <-  mt.maxT(X=dt,classlabel=rsp,test=test,side=side,fixed.seed.sampling="y",B=nperm, na=.mt.naNUM, nonpara=ranks)
+	res <-  
+		mt.maxT(X=dt, classlabel=rsp, test=test, side=side,
+				fixed.seed.sampling="y", B=nperm, 
+				na = multtest::.mt.naNUM, nonpara=ranks)
 	maxT <- res$adjp[order(res$index)]
 	
         ##rawp <- res$rawp[order(res$index)]
@@ -1387,10 +1339,8 @@ plotfreq.stat.chrom.final.func <-
         pdf(filePS, width = 8.5, height = 11)
     }
     else
-    {
-        print("no legimate file format is specified")
-        exit()
-    }
+        stop("no legimate file format is specified\n")
+
     nc <- 1
     ##	for (ch in 1:length(chrom))
     for (ch in chrom)
@@ -1442,332 +1392,6 @@ plotfreq.stat.chrom.final.func <-
 
 }
 
-
-#############################################################################
-#############################################################################
-##################################################################################
-##################################################################################
-
-##frequency plot for the whole genome
-
-##data
-##rsp -- phenotype, NA are not allowed, have to be consequetive integers
-##datainfo
-##chrominfo
-##titles -- the titles of the frequency plots -- has to have as many names as 
-##levels in the response
-##thres -- unique threshold or vector of tumor specific thresholds. In the latter
-##case has to contain as many thershold as samples
-##cutplot -- don't plots clones which gained/lost in fewer than <= fraction of cases
-##sign -- to do significance comparison (TRUE) or not (FALSE). to do comparison uses
-##multtest package
-##nperm -- if sign =TRUE, then how many permutations for maxT
-##test -- name of the test
-##ranks -- whether to work with ranked data If nor, "n"
-##side -- two sisded (abs) test or 1-sided ("upper" or "lower")
-##p.thres -- for which adjusted p-values show the cut-off
-##filePS -- name of the ps/pdf file
-##PS = "ps" or "pdf"
-##X=TRUE -- is X (23) chrom included?
-##Y=FALSE  -- is Y (24) chrom included?
-##numaut=22 -- number of autosomes
-##ngrid=50: density of colors
-##nlim=1: upper limit for solors
-##mincolors: minimum limit for colors
-##by defult "white"corersponds to [-.2,.2] and red and green to [-1,-.2] and [.2,1[]
-##respectively
-## quant.col=.5: percentile for coloring gaind/lost clones -- <= .5, E.g. .25
-##would correspond to taking 25th % for lost and 75% for gained samples
-
-
-##plotfreq.stat.final.colors.func <- function(data, rsp,datainfo, chrominfo, titles, thres=.2,cutplot = 0, ylm=c(-1,1), sign=FALSE, dataSign=data, nperm=1000, test="f", ranks="y", side="abs", p.thres=c(.01,.05,.1,.2), filePS="gainslosses.ps", ngrid=50, nlim=1, mincolors=.2, quant.col=.5, X=TRUE, Y=FALSE, numaut=22, PS="ps", onepage=TRUE)
-##{
-
-##rsp.uniq <- unique(rsp)
-##colmatr <- matrix(0, nrow=length(rsp.uniq), ncol=length(rsp))
-##for (i in 1:nrow(colmatr))
-##{
-##	colmatr[i,rsp==rsp.uniq[i]] <- 1
-##}
-
-
-
-##pal <- c("red", "blue", "green", "yellow")
-##pal <- pal[1:length(p.thres)]
-
-##colors.gain <- maPalette(low = "white", high = "green", k=ngrid)
-##colors.loss <- maPalette(low = "red", high = "white", k=ngrid)
-
-##sq.loss <- seq(-nlim, -mincolors, length=(ngrid+1))
-##sq.gain <- seq(mincolors, nlim, length=(ngrid+1))
-
-######################################################
-
-##matr.colors.loss <- data.frame(sq.loss[-length(sq.loss)], sq.loss[-1], colors.loss)
-##matr.colors.gain <- data.frame(sq.gain[-length(sq.gain)], sq.gain[-1], colors.gain)
-
-##if (nrow(colmatr) == 1)
-##{
-##	sign <- FALSE
-##}
-
-##nr <- nrow(colmatr)
-##if (sign)
-##{	
-##	nr <- nr+1
-
-##}
-
-##tmp <- matrix(0, ncol=2,nrow=1)   
-##tmp <- as.data.frame(tmp) 
-##dimnames(tmp)[[2]] <- c("gainP", "lossP")   
-##gainloss <- rep(list(tmp),nrow(colmatr))            
-
-##for (j in 1:nrow(colmatr))
-##{
-
-##	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-##	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres, quant=quant.col)
-
-##}
-
-
-
-##if (sign)
-##{
-##	dt <- dataSign[,colmatr[1,]==1]
-##	rsp <- rep(1, ncol(dt))
-##	for (j in 2:nrow(colmatr))
-##	{
-##		dt <- cbind(dt, dataSign[,colmatr[j,]==1])
-##		rsp <- c(rsp, rep(j, ncol(dataSign[,colmatr[j,]==1])))
-##	}
-##	rsp <- rsp-1
-##	res <-  mt.maxT(X=dt,classlabel=rsp,test=test,side=side,fixed.seed.sampling="y",B=nperm, na=.mt.naNUM, nonpara=ranks)
-##	maxT <- res$adjp[order(res$index)]
-##	#rawp <- res$rawp[order(res$index)]
-##	teststat <- abs(res$teststat[order(res$index)])
-##	st <- rep(NA, length(p.thres))
-##	for (s in 1:length(p.thres))
-##	{
-##		if (length(maxT[maxT<=p.thres[s]]) > 0)
-##		{
-##			st[s] <- min(teststat[maxT<=p.thres[s]])
-##		}
-##	}
-
-##	#st.now <- st[!is.na(st)]
-##	#pal.now <- pal[!is.na(st)]
-
-##	st.now <- st
-##	pal.now <- pal
-
-##}
-
-
-
-##numchr <- numaut
-##if (X)
-##{
-##	numchr <- numchr+1
-##}
-##if (Y)
-##{
-##	numchr <- numchr+1
-##}
-
-##chrominfo <- chrominfo[1:numchr,]
-
-
-###compute cumulative kb locations
-##        start <- c(0, cumsum(chrominfo$length))
-##        kb.loc <- datainfo$kb
-##        for (i in 1:nrow(chrominfo))
-##        {
-##                tmp <- start[i]+datainfo$kb[datainfo$Chrom==i]
-##                kb.loc[datainfo$Chrom==i] <- tmp
-##        }
-###preparation for graphs
-##        chrom.start <- rep(0,nrow(chrominfo))
-##        for (i in 2:length(chrom.start))
-##        {
-##                chrom.start[i] <- sum(chrominfo$length[1:(i-1)])
-
-##        }
-##        chrom.centr <- rep(0,nrow(chrominfo))
-##        for (i in 1:length(chrom.centr))
-##        {
-##                chrom.centr[i] <- chrom.start[i]+chrominfo$centr[i]
-
-##        }
-
-##        chrom.mid <- rep(0, nrow(chrominfo))
-##        for (i in 1:length(chrom.start))
-##        {
-##              chrom.mid[i] <- chrom.start[i]+chrominfo$length[i]/2
-##        }
-
-###now, plot
-##        #nc <- max(length(titles)/2,1)
-##	nc <- 1
-
-##	if (PS == "ps")
-##	{
-##		postscript(filePS,paper="letter")
-##	}
-##	else if (PS == "pdf")
-##	{
-##		pdf(filePS, width = 8.5, height =11)
-##      	}
-##	if (onepage)
-##	{
-##		par(mfrow=c(nr,nc), lab=c(1,8,7), tcl=-.2,  xaxs="i")
-##	}
-##	else
-##	{
-##		par(mfrow=c(1,nc), lab=c(1,8,7), tcl=-.2,  xaxs="i")
-##	}
-##        for (g in 1:length(titles))
-##        {
-##                gl <- gainloss[[g]]
-##		tl <- titles[g]
-##		ylm[1] <- min(ylm, min(gl$lossP))
-##		ylm[2] <- max(ylm, max(gl$gainP))
-
-##		cl <- gl$gainMed	
-
-##		col.nrow <- rep(0, length(cl))
-##		for (i in 1:length(cl))
-##		{
-##			if (cl[i]>=nlim)
-##			{
-##				cl[i] <- nlim-10^(-6)
-##			}
-##			if (length((1:nrow(matr.colors.gain))[cl[i]>=matr.colors.gain[,1] & cl[i]<matr.colors.gain[,2]]) > 0)
-##			{
-##				col.nrow[i] <- (1:nrow(matr.colors.gain))[cl[i]>=matr.colors.gain[,1] & cl[i]<matr.colors.gain[,2]]
-##			}
-##			else
-##			{
-##				col.nrow[i] <- 1
-##			}
-##		}		
-
-
-##		plot(kb.loc[gl$gainP>=cutplot],gl$gainP[gl$gainP>=cutplot], col=as.character(matr.colors.gain[gl$gainP>=cutplot,3][col.nrow[gl$gainP>=cutplot]]), type="h", xlab="chromosome number", ylab="Fraction gained or lost", pch=18, main=tl, ylim=ylm, xlim=c(0, max(cumsum(chrominfo$length))))
-
-##		cl <- gl$lossMed
-
-##		col.nrow <- rep(0, length(cl))
-##		for (i in 1:length(cl))
-##		{
-##			if (cl[i]<=-nlim)
-##			{
-##				cl[i] <- -nlim+10^(-6)
-##			}
-##			if (length((1:nrow(matr.colors.loss))[cl[i]>=matr.colors.loss[,1] & cl[i]<matr.colors.loss[,2]]) > 0)
-##			{
-##				col.nrow[i] <- (1:nrow(matr.colors.loss))[cl[i]>=matr.colors.loss[,1] & cl[i]<matr.colors.loss[,2]]
-##			}
-##			else
-##			{
-##				col.nrow[i] <- ngrid
-##			}
-##		}		
-
-
-##                points(kb.loc[gl$lossP>=cutplot],-gl$lossP[gl$lossP>=cutplot], col=as.character(matr.colors.loss[gl$lossP>=cutplot,3][col.nrow[gl$lossP>=cutplot]]), type="h")
-
-##                abline(h=0)
-##                abline(h=seq(-.8,.8,b=.2), lty=2,lwd=.5)
-##                abline(v=cumsum(chrominfo$length), col="blue")
-##                abline(v=chrom.centr, lty=2, col="grey50")
-
-##		for (i in seq(2,(numaut),b=2))
-##                {
-##                     mtext(paste("", i), side = 3, at = (chrom.mid[i]), line=.3, col="red", cex.main=.5)
-##		}
-##		for (i in seq(1,(numaut),b=2))
-##                {
-##                     mtext(paste("", i), side = 1, at = (chrom.mid[i]), line=.3, col="red", cex.main=.5)
-##		}
-
-##		if(X)
-##		{
-##			if (i == numaut)
-##			{
-##				mtext("X", side = 1, at = (chrom.mid[numaut+1]), line=.3, col="red", cex.main=.5)
-##			}
-##			else
-##			{
-##				mtext("X", side = 3, at = (chrom.mid[numaut+1]), line=.3, col="red", cex.main=.5)
-##			}
-##		}
-##		if (Y)
-##		{
-##			if (i == numaut)
-##			{
-##				mtext("Y", side = 3, at = (chrom.mid[numaut+2]), line=.3, col="red", cex.main=.5)
-##			}
-##			else
-##			{
-##				mtext("Y", side = 1, at = (chrom.mid[numaut+2]), line=.3, col="red", cex.main=.5)
-##			}
-
-##		}
-
-##        }
-##	if (sign)
-##	{
-##		plot(kb.loc,teststat, col="blue", ylim=c(0,max(teststat)), type="h", xlab="chromosome number", ylab="clone statistic", pch=18, main=paste(titles, collapse=" vs "), xlim=c(0, max(cumsum(chrominfo$length))))
-##		if (length(st.now) > 0)
-##		{
-##			abline(h=rev(st.now), col=rev(pal.now), lty=2)
-##		}
-##		abline(v=cumsum(chrominfo$length), col="black")
-##                abline(v=chrom.centr, lty=2, col="grey50")
-
-##		for (i in seq(1,(numaut),b=2))
-##                {
-##                     mtext(paste("", i), side = 1, at = (chrom.mid[i]), line=.3, col="red", cex.main=.5)
-##		}
-##		for (i in seq(2,(numaut),b=2))
-##                {
-##                     mtext(paste("", i), side = 3, at = (chrom.mid[i]), line=.3, col="red", cex.main=.5)
-##		}
-
-##		if(X)
-##		{
-##			if (i == numaut)
-##			{
-##				mtext("X", side = 1, at = (chrom.mid[numaut+1]), line=.3, col="red", cex.main=.5)
-##			}
-##			else
-##			{
-##				mtext("X", side = 3, at = (chrom.mid[numaut+1]), line=.3, col="red", cex.main=.5)
-##			}
-##		}
-##		if (Y)
-##		{
-##			if (i == numaut)
-##			{
-##				mtext("Y", side = 3, at = (chrom.mid[numaut+2]), line=.3, col="red", cex.main=.5)
-##			}
-##			else
-##			{
-##				mtext("Y", side = 1, at = (chrom.mid[numaut+2]), line=.3, col="red", cex.main=.5)
-##			}
-
-##		}
-
-
-##	}
-
-##	dev.off()
-
-##}
-
-
 #############################################################################
 #############################################################################
 #############################################################################
@@ -1807,11 +1431,12 @@ plotfreq.stat.chrom.final.func <-
 ##would correspond to taking 25th % for lost and 75% for gained samples
 
 plotfreq.givenstat.final.colors.func <-
-    function(data, rsp,datainfo, chrominfo, titles, thres=.2,cutplot =
-             0, ylm=c(-1,1), sign=FALSE, stat=stats, statPerm=statsPerm,
-             p.thres=c(.01,.05,.1,.2), filePS="gainslosses.ps",
-             ngrid=50, nlim=1, mincolors=.2, quant.col=.5, X=TRUE, Y=FALSE,
-             numaut=22, PS="ps", onepage=TRUE)
+    function(data, rsp, datainfo, chrominfo, titles, thres = .2,
+			 cutplot = 0, ylm = c(-1, 1), sign = FALSE, stat,
+    		 statPerm, p.thres = c(.01, .05, .1, .2),
+    		 filePS = "gainslosses.ps", ngrid = 50, nlim = 1,
+    		 mincolors = .2, quant.col = .5, X = TRUE, Y = FALSE,
+             numaut = 22, PS = "ps", onepage = TRUE)
 {
 
     rsp.uniq <- unique(rsp)
@@ -1853,7 +1478,7 @@ plotfreq.givenstat.final.colors.func <-
     {
 	
 	cols <- (1:ncol(colmatr))[colmatr[j,]==1]
-	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres, quant=quant.col)
+	gainloss[[j]] <- gainLoss(dat=data, cols=cols,thres=thres)
 	
     }
 
