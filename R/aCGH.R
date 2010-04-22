@@ -88,14 +88,14 @@ impute.lowess <-
 	
         for (i in 1:ncol(log2.ratios))
         {
-            
+
             ##print(i)
             if (length(indl) > 0)
             {
                 
                 vecl <- log2.ratios[indl, i]
                 ind <- which(!is.na(vecl))
-                if (length(ind) > 0)
+                if (length(ind) > 1)
                     data.imp[indl, i][-ind] <-
                         approx(lowess(kbl[ind], vecl[ind], f = smooth),
                                xout = kbl[-ind])$y
@@ -106,11 +106,11 @@ impute.lowess <-
                 
                 vecr <- log2.ratios[indr, i]
                 ind <- which(!is.na(vecr))
-                if (length(ind) > 0)
+                if (length(ind) > 1)
                     data.imp[indr, i][-ind] <-
                         approx(lowess(kbr[ind], vecr[ind], f = smooth),
                                xout = kbr[-ind])$y
-                
+
             }
             
         }
