@@ -1,7 +1,7 @@
 Package: aCGH
 Title: Classes and functions for Array Comparative Genomic
         Hybridization data.
-Version: 1.29.0
+Version: 1.29.1
 Date: 2010-04-15
 Depends: R (>= 1.8.0), cluster, survival, multtest
 Imports: Biobase, cluster, grDevices, graphics, methods, multtest, stats,
@@ -14,7 +14,7 @@ Description: Functions for reading aCGH data from image analysis
         accessing/replacing, subsetting, printing and plotting aCGH
         objects.
 Maintainer: Peter Dimitrov <dimitrov@stat.Berkeley.EDU>
-License: GPL
+License: GPL-2
 Collate: aCGH.R aCGH.plotting.R aCGH.read.R aCGH.test.R clusterGenome.R funcs.dataplot.R heatmap.R hmm.R human.chrom.info.Jul03.R human.chrom.info.May04.R mergeLevels.R
 LazyLoad: yes
 biocViews: CopyNumberVariants, DataImport, Genetics
