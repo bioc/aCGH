@@ -1,11 +1,10 @@
 Package: aCGH
 Title: Classes and functions for Array Comparative Genomic
-        Hybridization data.
-Version: 1.65.0
+        Hybridization data
+Version: 1.65.1
 Date: 2010-04-15
 Depends: R (>= 2.10), cluster, survival, multtest
-Imports: Biobase, cluster, grDevices, graphics, methods, multtest,
-        stats, survival, splines, utils
+Imports: Biobase, grDevices, graphics, methods, stats, splines, utils
 Author: Jane Fridlyand <jfridlyand@cc.ucsf.edu>, Peter Dimitrov
         <dimitrov@stat.Berkeley.EDU>
 Description: Functions for reading aCGH data from image analysis output

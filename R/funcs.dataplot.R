@@ -891,7 +891,7 @@ plotCGH.func <-
     {
 	postscript(namePSfile, paper="letter", horizontal=FALSE)
         ##just a safety line
-	close.screen(all=TRUE)
+	close.screen(all.screens=TRUE)
         ##"inch" factor for to determine size of the plot in inches (for "pin" parameter)
 	fact <- 3.9
         ##split the screen
@@ -1047,10 +1047,9 @@ plotfreq.stat.final.func <-
             rsp <- c(rsp, rep(j, ncol(dataSign[,colmatr[j,]==1])))
 	}
 	rsp <- rsp-1
-	res <- 
-			mt.maxT(X=dt,classlabel=rsp,test=test,side=side,
-					fixed.seed.sampling = "y", B=nperm, 
-					na = multtest::.mt.naNUM, nonpara=ranks)
+	res <- mt.maxT(X=dt,classlabel=rsp,test=test,side=side,
+                       fixed.seed.sampling = "y", B=nperm, na = .mt.naNUM,
+                       nonpara=ranks)
 	maxT <- res$adjp[order(res$index)]
         ##rawp <- res$rawp[order(res$index)]
 	teststat <- abs(res$teststat[order(res$index)])
@@ -1302,10 +1301,9 @@ plotfreq.stat.chrom.final.func <-
             rsp <- c(rsp, rep(j, ncol(dataSign[,colmatr[j,]==1])))
 	}
 	rsp <- rsp-1
-	res <-  
-		mt.maxT(X=dt, classlabel=rsp, test=test, side=side,
-				fixed.seed.sampling="y", B=nperm, 
-				na = multtest::.mt.naNUM, nonpara=ranks)
+	res <- mt.maxT(X=dt, classlabel=rsp, test=test, side=side,
+                       fixed.seed.sampling="y", B=nperm, na = .mt.naNUM,
+                       nonpara=ranks)
 	maxT <- res$adjp[order(res$index)]
 	
         ##rawp <- res$rawp[order(res$index)]

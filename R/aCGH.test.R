@@ -514,7 +514,7 @@ plotFreqStat <-
              xlim = c(0, max(cumsum(chrominfo$length), kb.loc[ind],
              rm.na = TRUE)), xaxt="n")
              
-	  axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
+	  axis(side=1, at=kb.loc[ind][1], labels="", tick=FALSE)
         ind <- gl$lossP >= cutplot & ind.na
         points(kb.loc[ind], -gl$lossP[ind],
                col = "red",
@@ -530,7 +530,7 @@ plotFreqStat <-
              xlim = c(0, max(cumsum(chrominfo$length), kb.loc[ind],
              rm.na = TRUE)), xaxt="n")
              
-	  axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)
+	  axis(side=1, at=kb.loc[ind][1], labels="", tick=FALSE)
         ind <- gl$lossP >= cutplot & ind.na
         points(kb.loc[ind], -gl$lossP[ind],
                col = "grey50",
@@ -590,7 +590,7 @@ plotFreqStat <-
              xlim =
              c(0, max(cumsum(chrominfo$length), kb.loc, rm.na = TRUE)), xaxt="n"
              )
-	axis(side=1, at=kb.loc[ind][1], label="", tick=FALSE)	
+	axis(side=1, at=kb.loc[ind][1], labels="", tick=FALSE)	
 	st.now <- rev(st)
 	pal.now <- rev(col.scheme$pal)
         if (length(st.now) > 0)

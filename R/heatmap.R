@@ -6,8 +6,8 @@ heatmap <-
              RowSideColors, cexRow = 0.2 + 1 / log10(nr),
              cexCol = 0.2 + 1 / log10(nc), labRow = NULL,
              labCol = NULL, main = NULL, xlab = NULL, ylab = NULL,
-             verbose = getOption("verbose"), methodR = "ward",
-             methodC = "ward", zlm = c(-0.5, 0.5), ...)
+             verbose = getOption("verbose"), methodR = "ward.D",
+             methodC = "ward.D", zlm = c(-0.5, 0.5), ...)
 {
     
     scale <- if (symm && missing(scale)) 

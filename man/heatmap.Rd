@@ -13,8 +13,8 @@ heatmap(x, imp = TRUE, Rowv = NA, Colv = NULL, distfun = dist,
         RowSideColors, cexRow = 0.2 + 1 / log10(nr),
         cexCol = 0.2 + 1 / log10(nc), labRow = NULL,
         labCol = NULL, main = NULL, xlab = NULL, ylab = NULL,
-        verbose = getOption("verbose"), methodR = "ward",
-        methodC = "ward", zlm = c(-0.5, 0.5), ...)
+        verbose = getOption("verbose"), methodR = "ward.D",
+        methodC = "ward.D", zlm = c(-0.5, 0.5), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -65,8 +65,8 @@ heatmap(x, imp = TRUE, Rowv = NA, Colv = NULL, distfun = dist,
     respectively.}
   \item{main, xlab, ylab}{main, x- and y-axis titles;}
   \item{verbose}{logical indicating if information should be printed.}
-  \item{methodR}{method to use for clustering rows. defaults to "ward"}
-  \item{methodC}{method to use for clustering columns. defaults to "ward"}
+  \item{methodR}{method to use for clustering rows. defaults to "ward.D"}
+  \item{methodC}{method to use for clustering columns. defaults to "ward.D"}
   \item{zlm}{all the values greater or equal  than zlm are set to zlm -
     0.01. a;; value less or equal to -zlm are set to -zlm + 0.01
   }

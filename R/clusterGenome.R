@@ -4,7 +4,7 @@ clusterGenome <-
              lowCol = "red", highCol = "green", midCol = "black",
              ncolors = 50, byclass = FALSE, showaber = FALSE, amplif = 1,
              homdel = -0.75, samplenames = sample.names(aCGH.obj),
-             vecchrom = 1:23, titles = "Image Plot", methodS = "ward",
+             vecchrom = 1:23, titles = "Image Plot", methodS = "ward.D",
              dendPlot = TRUE, imp = TRUE, categoricalPheno = TRUE)
 {
 	aCGH.obj <- aCGH.obj[,!is.na(response)]

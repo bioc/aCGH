@@ -1,3 +1,4 @@
+.mt.naNUM<- -93074815                   # hard-coded, not exported, in multtest
 
 create.aCGH <-
     function(log2.ratios, clones.info, phenotype = NULL)

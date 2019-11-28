@@ -77,7 +77,7 @@ plotGenome <-
                clone.genomepos[sum(clone.genomepos > 0)] / 1000),
              col = "black", xaxt="n")
         
-        axis(side=1, at=clone.genomepos[1]/ 1000, label="", tick=FALSE)
+        axis(side=1, at=clone.genomepos[1]/ 1000, labels="", tick=FALSE)
 
         ##title(main=paste(name, " ", sample[k], " - Whole Genome"),
         ##ylab=ylb, xlab="Chromosome", cex.lab=1.5,cex.main=2)
@@ -166,8 +166,8 @@ find.genomic.events")
                    apply(ge$num.amplicons[ 1:maxChrom, ], 2, sum,
                          na.rm = TRUE)
                    )[ which(!is.na(response)), ]
-    attach(df.not.na)
-    numchromchange <- numchromgain + numchromloss
+
+    numchromchange <- df.not.na$numchromgain + df.not.na$numchromloss
 
     deletions <- threshold.func(log2.ratios(aCGH.obj),posThres=posThres,negThres=negThres)
     
@@ -190,20 +190,20 @@ find.genomic.events")
     ##Plot1:
     par(mfrow = c(2, 2))
 
-    boxplot.this(numtrans, "Number of Transitions")
-    boxplot.this(numtrans.binary,
+    boxplot.this(df.not.na$numtrans, "Number of Transitions")
+    boxplot.this(df.not.na$numtrans.binary,
                  "Number of Chrom containing Transitions")
-    boxplot.this(numaber, "Number of Aberrations")
+    boxplot.this(df.not.na$numaber, "Number of Aberrations")
     boxplot.this(numchromchange, "Number of Whole Chrom Changes")
 
 #############################################
     ##Plot2:
     
-    boxplot.this(numamplif, "Number of Amplifications")
-    boxplot.this(numamplif.binary,
+    boxplot.this(df.not.na$numamplif, "Number of Amplifications")
+    boxplot.this(df.not.na$numamplif.binary,
                  "Number of Chrom containing Amplifications")
-    boxplot.this(numamplicon, "Number of Amplicons")
-    boxplot.this(sizeamplicon, "Amount of Genome Amplified")
+    boxplot.this(df.not.na$numamplicon, "Number of Amplicons")
+    boxplot.this(df.not.na$sizeamplicon, "Amount of Genome Amplified")
 
 #############################################
     ##Plot3:
@@ -304,8 +304,6 @@ find.genomic.events")
              ylim = c(0, mx), xlim = c(0,23))
         
     }
-
-    detach(df.not.na)
 
 }	
 
@@ -1149,9 +1147,9 @@ plotGeneSign <-
 	pal <- c("red", "green", "yellow", "blue")
 	pal <- pal[1:length(p.thres)]
 	
-	res <-  
-			mt.maxT(X=dataSign, classlabel=phen,test=test,side=side,
-					fixed.seed.sampling="y",B=nperm, na = multtest::.mt.naNUM, nonpara=ranks)
+	res <- mt.maxT(X=dataSign, classlabel=phen,test=test,side=side,
+                       fixed.seed.sampling="y",B=nperm, na = .mt.naNUM,
+                       nonpara=ranks)
 	maxT <- res$adjp[order(res$index)]	
 	
         ##rawp <- res$rawp[order(res$index)]

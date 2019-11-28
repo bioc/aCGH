@@ -10,7 +10,7 @@ read.Sproc.files <-
                
                cat("Trying to read ", fname, "\n")
                dt.tmp <-
-                   read.table(fname, h = TRUE, sep = "\t", quote = "",
+                   read.table(fname, header = TRUE, sep = "\t", quote = "",
                               comment.char = "", fill = TRUE,
                               blank.lines.skip = FALSE, dec = ".")
                colnames(dt.tmp) <- dotify.names(colnames(dt.tmp))
@@ -65,7 +65,7 @@ aCGH.read.Sprocs <-
     ## Extract the clones information from the first file in the list
     
     clones.info <- 
-        extract.clones.info(read.table(fnames[1], h = TRUE, sep = "\t",
+        extract.clones.info(read.table(fnames[1], header = TRUE, sep = "\t",
                                        quote = "", comment.char = "",
                                        fill = TRUE,
                                        blank.lines.skip = FALSE))
@@ -76,7 +76,7 @@ aCGH.read.Sprocs <-
     {
 
         latest.mapping <-
-            read.table(latest.mapping.file, sep = "\t", h = TRUE,
+            read.table(latest.mapping.file, sep = "\t", header = TRUE,
                        quote = "", comment.char = "")[, 1:4]
         colnames(latest.mapping) <-
             dotify.names(colnames(latest.mapping))

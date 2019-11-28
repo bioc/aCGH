@@ -33,3 +33,13 @@ importFrom(utils, browseURL, menu, read.table, str, toBibtex)
 importFrom(survival, coxph, cluster, survdiff, survreg.distributions)
 
 exportPattern("^[^\\.]")
+
+S3method("[", "aCGH")
+
+S3method("dim", "aCGH")
+
+S3method("plot", "aCGH")
+
+S3method("print", "aCGH")
+
+S3method("summary", "aCGH")

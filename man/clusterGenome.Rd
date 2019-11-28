@@ -18,7 +18,7 @@ clusterGenome(aCGH.obj,
                    amplif = 1, homdel = -0.75,
                    samplenames = sample.names(aCGH.obj),
                    vecchrom = 1:23, titles = "Image Plot",
-                   methodS = "ward", dendPlot = TRUE, imp = TRUE,
+                   methodS = "ward.D", dendPlot = TRUE, imp = TRUE,
                    categoricalPheno = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -46,7 +46,7 @@ clusterGenome(aCGH.obj,
   \item{samplenames}{sample names}
   \item{vecchrom}{vector of chromosomal indeces to use for clustering and to display. defaults to 1:23}
   \item{titles}{plot title. defaults to "Image Plots"}
-  \item{methodS}{clustering method to cluster samples. defaults to "ward"}
+  \item{methodS}{clustering method to cluster samples. defaults to "ward.D"}
   \item{dendPlot}{logical indicating whether dendogram needs to be
     drawn. defaults to T.}
   \item{imp}{logical indicating whether imputed or original values should be used. defaults to T, i.e. imputed.}
@@ -101,7 +101,7 @@ for (i in 1:23)
                        cutoff = 1, ncolors = 50, lowCol="green",
                        highCol="red", midCol="black", byclass = FALSE,
                        showaber = TRUE, homdel = -1, vecchrom = i,
-                       titles = "Image Plot", methodS = "ward",
+                       titles = "Image Plot", methodS = "ward.D",
                        dendPlot = FALSE, categoricalPheno = FALSE)
 dev.off()
 

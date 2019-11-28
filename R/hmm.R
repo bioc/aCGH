@@ -136,8 +136,8 @@ states.hmm.func <-
                    PACKAGE = "aCGH")
             res$hidden.states <- res$hidden.states + 1
             res$filtered.cond.probs <-
-                matrix(res$filtered.cond.probs, nr = k)
-            res$gamma <- matrix(res$gamma, nr = k)
+                matrix(res$filtered.cond.probs, nrow = k)
+            res$gamma <- matrix(res$gamma, nrow = k)
             res
             
         }
@@ -1050,7 +1050,7 @@ plotCGH.hmm.func <-
 
     postscript(namePSfile, paper="letter", horizontal = FALSE)
     ##just a safety line
-    close.screen(all = TRUE)
+    close.screen(all.screens = TRUE)
     ##"inch" factor for to determine size of the plot in inches (for "pin" parameter)
     fact <- 3.9
     ##split the screen
